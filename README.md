@@ -4,9 +4,6 @@
 
 * HTML, CSS, BootStrap, and JavaScript
 
-## Scrennshots
-
-
 ## Deployment
 You can check the website [here](https://vhspurnea.com) 🌟
 
