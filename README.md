@@ -8,7 +8,7 @@
 
 
 ## Deployment
-You can check the website [here](https://priyanshu-singh-1.github.io/Vimal-Hriday-School-Bihar/) 🌟
+You can check the website [here](https://vhspurnea.com) 🌟
 
 ## Contact   
 
