@@ -3807,3 +3807,33 @@ a.w3_agile_vimeo:hover {
 .imgCatList a {
   color: White;
 }
+
+.modern-heading {
+  font-family: "Raleway", sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #614bc3;
+  text-align: center;
+  padding: 10px 0;
+  margin: 40px 0 20px;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.modern-heading::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 4px;
+  background-color: #33bbc5;
+  margin: 15px auto 0;
+}
+
+.modern-heading-container {
+  background-color: #f8f9fa;
+  padding: 5px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
