@@ -52,7 +52,7 @@ label {
 }
 /*--banner-slider--*/
 .banner {
-  background: url(../images/bann.jpg) no-repeat 0px 0px;
+  background: url(../resources/images/bann.jpg) no-repeat 0px 0px;
   background-size: cover;
   -webkit-background-size: cover;
   -o-background-size: cover;
@@ -461,7 +461,7 @@ ul.callbacks_tabs.callbacks2_tabs {
 ul.social-slide li i {
   width: 70px;
   height: 74px;
-  background: url(../images/img-resources.png) no-repeat;
+  background: url(../resources/images/img-resources.png) no-repeat;
   display: inline-block;
   margin: 0px 15px;
 }
@@ -887,7 +887,7 @@ a.callbacks_nav.callbacks3_nav.next{
 
 /* Image needsot be replaced */
 .stats-agileits {
-  background: url(../photo_gallery/School7.jpeg) no-repeat;
+  background: url(../resources/photo_gallery/School7.jpeg) no-repeat;
   background-size: cover;
   background-attachment: fixed;
 }
@@ -1199,12 +1199,12 @@ figure img {
 .nbs-flexisel-nav-left {
   left: 46.5%;
   top: 109% !important;
-  background: #000 url(../images/themes.png) no-repeat 10px 10px;
+  background: #000 url(../resources/images/themes.png) no-repeat 10px 10px;
 }
 .nbs-flexisel-nav-right {
   right: 46.5%;
   top: 109% !important;
-  background: #000 url(../images/themes1.png) no-repeat 11px 11px;
+  background: #000 url(../resources/images/themes1.png) no-repeat 11px 11px;
 }
 /* Color needs to be changed */
 .laptop {
@@ -1257,7 +1257,7 @@ figure img {
 /*--//testimonials--*/
 /*--inner pages--*/
 .inner-banner-w3l {
-  background: url(../images/inner-bann.jpg) no-repeat 0px 0px;
+  background: url(../resources/images/inner-bann.jpg) no-repeat 0px 0px;
   background-size: cover;
   -webkit-background-size: cover;
   -o-background-size: cover;
@@ -1274,7 +1274,7 @@ figure img {
   margin: 0 auto;
 }
 .about-agile {
-  background: url(../homeslider/3.jpg) no-repeat;
+  background: url(../resources/homeslider/3.jpg) no-repeat;
   background-attachment: fixed;
   background-size: cover;
   -webkit-background-size: cover;
@@ -1592,7 +1592,7 @@ figure img {
   margin: 2em 0 0;
 }
 .services-bottom {
-  background: url(../images/5.jpg) no-repeat 0px 0px;
+  background: url(../resources/images/5.jpg) no-repeat 0px 0px;
   background-size: cover;
   -webkit-background-size: cover;
   -moz-background-size: cover;
@@ -2436,7 +2436,7 @@ a.w3_agile_vimeo:hover {
   height: 32px;
   border: none;
   text-indent: 100%;
-  background: url(../images/arr.png) no-repeat 0px 0px;
+  background: url(../resources/images/arr.png) no-repeat 0px 0px;
 }
 #toTopHover {
   width: 64px;
