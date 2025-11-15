@@ -247,103 +247,30 @@
                 The main thing is every page will have the same content untill above -->
                 <!-- //Header -->
         
+<div class="row">
+    <div class="col-md-12">
+        
+        <div class="about-bottom inner-padding" >
+        <h3 class="heading-agileinfo">
+            Election Day 2025-2026</h3>
+</div>
+        
+    </div>
+</div>
 
-        <!-- gallery inner -->
-        <div class="inner-padding">
 
-            <div class="container">
-
-                <h3 class="heading-agileinfo">Unleashing Potential: An Array of Non Curriculum Activities<span></span></h3>
-                <div class="row">
-                    <div class="col-md-11 col-md-offset-1">
-                        <ul class="imgCatList">
-
-                                    <li>
-                                        <a href='../about/investitureceremony.html'><img src='../../resources/noncurricular/investiture/investiture2025/inv_27.jpg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../about/investitureceremony.html'>INVESTITURE CEREMONY (2025)</a></p>
-                                    </li>
-                            
-                                    <li>
-                                    <a href='../events/drawing.html'><img src='../../resources/noncurricular/drawing/17.png' class="img-thumbnail" /></a><br />
-                                    <p><a href='../events/drawing.html'>DRAWING COMPETITION (2025)</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/election.html'><img src='../../resources/noncurricular/election/el_29.jpg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/planting.html'>ELECTION DAY (2025)</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/donnaMarry.html'><img src='../../resources/noncurricular/srDonnaMaryVisit/dm_13.jpg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/donnaMarry.html'>Sr. DONNA MARY VISIT (2025)</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/teacherSeminar.html'><img src='../../resources/noncurricular/teacherSeminar/ts_7.jpg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/teacherSeminar.html'>TEACHERS SEMINAR (2025)</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/planting.html'><img src='../../resources/noncurricular/planting/p_5.jpg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/planting.html'>ENVIRONMENT DAY (2025)</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/rakhimaking.html'><img src='../../resources/noncurricular/rakhimaking/r%20(1).jpeg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/rakhimaking.html'>RAKHI MAKING COMPETITON</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/noticeBoard.html'><img src='../../resources/noncurricular/noticeBoard/n1.jpeg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/noticeBoard.html'>NOTICE BOARD</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='lab.html'><img src='../../resources/noncurricular/schoollab/s%20(2).jpeg' class="img-thumbnail" /></a><br />
-                                        <p><a href='lab.html'>SCHOOL LAB</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/saladCompetiton.html'><img src='../../resources/noncurricular/saladMaking/1%20(9).jpg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/saladCompetiton.html'>SALAD MAKING COMPETITION</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/exhibition.html'><img src='../../resources/noncurricular/exhibition/exhibition%20(3).jpeg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/exhibition.html'>SCIENCE AND ART EXHIBITION</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/healthyFoodPreparation.html'><img src='../../resources/noncurricular/healthyFoodPreparation/hfp%20(9).jpeg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/healthyFoodPreparation.html'>HEALTHY FOOD PREPARATION</a></p>
-                                    </li>
-
-                                    <li>
-                                        <a href='../events/roomDecoration.html'><img src='../../resources/noncurricular/roomDecoration/rd%20(19).jpeg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/roomDecoration.html'>ROOM DECORATION</a></p>
-                                    </li>
-
-                                    <!-- Orientation Class -->
-                                    <li>
-                                        <a href='../events/orientationClass.html'><img src='../../resources/noncurricular/orientationClass/or%20(8).jpeg' class="img-thumbnail" /></a><br />
-                                        <p><a href='../events/orientationClass.html'>ORIENTATION CLASS</a></p>
-                                    </li>
-
-                                    
-
-                                
-                                    
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="clearfix"> </div>
-
-            </div>
-        </div>
-
-	<!-- //gallery inner -->
-
+<div class="row">
+    
+    <div class="col-md-10 col-md-offset-1">
+        <ul class="imgCatList" id="imageGallery">
+                        <!-- style -> line 3582 -> imgCatList -->
+                        <!-- Images will be dynamically loaded via JavaScript -->
+                
+        </ul>
+    </div>
+</div>
+<br /><br />
+   
 
 
         <!-- footer -->
@@ -501,5 +428,10 @@
                 $(document).ready(function () {
                 $("a[data-gal^='prettyPhoto']").prettyPhoto({ hook: 'data-gal' });
                 });
+        </script>
+
+        <script src="../../js/gallery-loader.js" type="text/javascript"></script>
+        <script>
+                loadGalleryImages('imageGallery', '../../resources/noncurricular/election/', 78, 'el_', 'jpg');
         </script>
 </html>
