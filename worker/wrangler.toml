@@ -1,0 +1,26 @@
+name = "vhs-admin"
+main = "src/index.ts"
+compatibility_date = "2026-08-11"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vhs-admin"
+database_id = "local-placeholder-replace-before-remote-deploy"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "vhs-images"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[vars]
+GITHUB_REPO = "Priyanshu-Singh-1/Vimal-Hriday-School-Bihar"
+# Testing branch. GitHub Pages builds the live site from `main`, so while this
+# names any other branch, publishing cannot alter vhspurnea.com. Switch to
+# "main" only at go-live, after the DNS move and the custom domains are up.
+GITHUB_BRANCH = "feat/admin-image-management"
+R2_PUBLIC_BASE = "https://img.vhspurnea.com"
+ALLOWED_ORIGINS = "https://vhspurnea.com,https://www.vhspurnea.com"
