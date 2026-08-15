@@ -254,7 +254,7 @@
 	<h3 class="heading-agileinfo">Our Founder
         <span style="font-weight: bold;font-size: 20px !important;">The Heart and Soul of FIH: Meet Our Founder</span></h3>
 				<div class="about-bott-right" style="display: grid;">
-                                        <img src="../../resources/management/founder.jpg" width=35% class="pull-left img-rounded img-borderd" style="margin-left: 34%; border: 2px solid Black; margin-bottom: 1%;"/>
+                                        <!--vhs:begin ourfounder.img.1--><img data-vhs-slot="ourfounder.img.1" src="../../resources/management/founder.jpg" width=35% class="pull-left img-rounded img-borderd" style="margin-left: 34%; border: 2px solid Black; margin-bottom: 1%;"/><!--vhs:end ourfounder.img.1-->
                                         
 					 <h5>Welcome to Vimal Hriday School, Purnea, Bihar</h5>
 					 <p>
@@ -340,6 +340,19 @@
 
         </div>
         </form>
+
+<!-- vhs-admin-boot: injects the editor only for a signed-in admin; a visitor downloads nothing more -->
+<script>
+(function(){
+  try {
+    if (!sessionStorage.getItem('vhs_admin_token')) return;
+    var s = document.createElement('script');
+    s.src = '../../js/admin/editor.v1.js';
+    s.defer = true;
+    document.body.appendChild(s);
+  } catch (e) {}
+})();
+</script>
 </body>
 
         <!-- js -->

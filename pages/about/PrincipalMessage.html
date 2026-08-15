@@ -257,7 +257,7 @@
                 
                         <div class="about-bott-right" style="text-align:justify;">
                             
-                            <img src="../../resources/management/1.jpeg" height="200px" class="pull-left img-rounded img-borderd" style="margin:0px 50px 10px 0px; border: 2px solid Black;"/>
+                            <!--vhs:begin principalmessage.img.1--><img data-vhs-slot="principalmessage.img.1" src="../../resources/management/1.jpeg" height="200px" class="pull-left img-rounded img-borderd" style="margin:0px 50px 10px 0px; border: 2px solid Black;"/><!--vhs:end principalmessage.img.1-->
                             
                             <br /><p><b>From the principal's desk</b></p>
                             <br /><p><img src="../../resources/firework.gif" alt="fire word GIF" style="height: 35px;">
@@ -379,6 +379,19 @@
 
         </div>
         </form>
+
+<!-- vhs-admin-boot: injects the editor only for a signed-in admin; a visitor downloads nothing more -->
+<script>
+(function(){
+  try {
+    if (!sessionStorage.getItem('vhs_admin_token')) return;
+    var s = document.createElement('script');
+    s.src = '../../js/admin/editor.v1.js';
+    s.defer = true;
+    document.body.appendChild(s);
+  } catch (e) {}
+})();
+</script>
 </body>
 
         <!-- js -->

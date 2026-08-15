@@ -258,28 +258,28 @@
                         <div class="about-bott-right">
                                 <div class="first_row" style="display: flex; justify-content: center;">
                                         <div class="image_wrapper" style="display: inline-block; justify-content: center; align-items: center; padding: 12px;">
-                                                <img src="../../resources/FIH/fih2.jpg" width="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                <!--vhs:begin ourmanagement.img.1--><img data-vhs-slot="ourmanagement.img.1" src="../../resources/FIH/fih2.jpg" width="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end ourmanagement.img.1-->
                                                 <p style="font-weight: bolder;">[ Mother Mary ]</p>
                                         </div>
                                         <div class="image_wrapper" style="display: inline-block; justify-content: center; align-items: center; padding: 12px;">
-                                                <img src="../../resources/FIH/fih1.jpg" width="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                <!--vhs:begin ourmanagement.img.2--><img data-vhs-slot="ourmanagement.img.2" src="../../resources/FIH/fih1.jpg" width="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end ourmanagement.img.2-->
                                                 <p style="font-weight: bolder;">[ F.I.H Generalate ]</p>
                                         </div>
                                         
                                 </div>
                                 <div class="first_row" style="display: flex; justify-content: center;">
                                                 <div class="image_wrapper" style=" display: inline-block; justify-content: center; align-items: center; padding: 12px;">
-                                                        <img src="../../resources/FIH/fih4.jpg" width="60%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                        <!--vhs:begin ourmanagement.img.3--><img data-vhs-slot="ourmanagement.img.3" src="../../resources/FIH/fih4.jpg" width="60%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end ourmanagement.img.3-->
                                                         <p style="">Sr. Rexia Mary</p>
                                                         <p style="font-weight: bolder;">[Mother General of FIH Congregation]</p>
                                                 </div>
                                                 <div class="image_wrapper" style=" display: inline-block; justify-content: center; align-items: center; padding: 12px;">
-                                                        <img src="../../resources/FIH/fih6.jpg" width="60%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                        <!--vhs:begin ourmanagement.img.4--><img data-vhs-slot="ourmanagement.img.4" src="../../resources/FIH/fih6.jpg" width="60%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end ourmanagement.img.4-->
                                                         <p style="">Sr. Renora Mary</p>
                                                         <p style="font-weight: bolder;">[ Educational Secretary of F.I.H Congregation ]</p>
                                                 </div>
                                                 <div class="image_wrapper" style=" display: inline-block; justify-content: center; align-items: center; padding: 12px;">
-                                                        <img src="../../resources/FIH/fih5.jpg" width="60%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                        <!--vhs:begin ourmanagement.img.5--><img data-vhs-slot="ourmanagement.img.5" src="../../resources/FIH/fih5.jpg" width="60%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end ourmanagement.img.5-->
                                                         <p style="">Sr. Collin Mary</p>
                                                         <p style="font-weight: bolder;">[ Provincial - F.I.H Province Delhi ]</p>
                                                 </div>
@@ -288,13 +288,13 @@
 
                                 <div class="first_row" style="display: flex; justify-content: center; margin-top: 0.6em;">
                                         <div class="image_wrapper" style=" display: inline-block; justify-content: center; align-items: center; padding: 12px;">                                                
-                                                        <img src="../../resources/management/localmanage1.jpeg" width="50%" height="70%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                        <!--vhs:begin ourmanagement.img.6--><img data-vhs-slot="ourmanagement.img.6" src="../../resources/management/localmanage1.jpeg" width="50%" height="70%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end ourmanagement.img.6-->
                                                         <p style="">Sr. Suja Mary</p>
                                                         <p style="font-weight: bolder;">[ Local Manager ]</p>
                                 
                                         </div>
                                         <div class="image_wrapper" style=" display: inline-block; justify-content: center; align-items: center; padding: 12px;">                                                
-                                                <img src="../../resources/management/1.jpeg" width="50%" height="70%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                <!--vhs:begin ourmanagement.img.7--><img data-vhs-slot="ourmanagement.img.7" src="../../resources/management/1.jpeg" width="50%" height="70%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end ourmanagement.img.7-->
                                                 <p style="">Sr. Akhila Mary</p>
                                                 <p style="font-weight: bolder;">[ Principal ]</p>
                         
@@ -397,6 +397,19 @@
 
         </div>
         </form>
+
+<!-- vhs-admin-boot: injects the editor only for a signed-in admin; a visitor downloads nothing more -->
+<script>
+(function(){
+  try {
+    if (!sessionStorage.getItem('vhs_admin_token')) return;
+    var s = document.createElement('script');
+    s.src = '../../js/admin/editor.v1.js';
+    s.defer = true;
+    document.body.appendChild(s);
+  } catch (e) {}
+})();
+</script>
 </body>
 
         <!-- js -->
