@@ -1,0 +1,11 @@
+worker/.dev.vars
+worker/node_modules
+worker/.wrangler
+tools/node_modules
+tools/slots-map.json
+node_modules
+.idea/
+.superpowers/
+e2e/node_modules
+e2e/test-results
+e2e/playwright-report
