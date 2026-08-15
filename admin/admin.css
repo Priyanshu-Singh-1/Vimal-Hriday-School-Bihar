@@ -1,0 +1,10 @@
+body.vhs-admin { background: #f5f5f5; font-family: Raleway, Arial, sans-serif; }
+.vhs-card { background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 20px; margin: 20px auto; max-width: 900px; }
+.vhs-card.narrow { max-width: 420px; }
+.vhs-err { color: #a94442; margin-top: 10px; min-height: 20px; }
+.vhs-ok { color: #3c763d; margin-top: 10px; min-height: 20px; }
+.vhs-hidden { display: none !important; }
+.vhs-badge-owner { background: #614BC3; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+.vhs-badge-editor { background: #33BBC5; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+table.vhs-table { width: 100%; } table.vhs-table td, table.vhs-table th { padding: 8px; border-bottom: 1px solid #eee; }
+.vhs-muted { color: #777; font-size: 12px; }

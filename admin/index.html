@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin — Vimal Hriday English Medium School</title>
+  <link rel="icon" href="../resources/images/logo.png">
+  <link href="../css/bootstrap.css" rel="stylesheet">
+  <link href="admin.css" rel="stylesheet">
+</head>
+<body class="vhs-admin">
+
+<div id="loginView" class="vhs-card narrow">
+  <h3>Admin sign in</h3>
+  <form id="loginForm">
+    <div class="form-group">
+      <label for="u">Username</label>
+      <input class="form-control" id="u" autocomplete="username" required>
+    </div>
+    <div class="form-group">
+      <label for="p">Password</label>
+      <input class="form-control" id="p" type="password" autocomplete="current-password" required>
+    </div>
+    <button class="btn btn-primary" type="submit" id="loginBtn">Sign in</button>
+    <div class="vhs-err" id="loginErr" role="alert"></div>
+  </form>
+</div>
+
+<div id="appView" class="vhs-hidden">
+  <div class="vhs-card" id="pagesCard">
+    <h4>Pages you can edit</h4>
+    <p>Open a page to edit the photographs on it. Look for the edit buttons on each photograph.</p>
+    <table class="vhs-table"><tbody id="pagesBody"></tbody></table>
+    <div class="vhs-err" id="pagesMsg" role="alert"></div>
+  </div>
+
+  <div class="vhs-card">
+    <p>
+      Signed in as <strong id="whoami"></strong> <span id="whorole"></span>
+      &nbsp;<button class="btn btn-default btn-xs" id="logoutBtn">Sign out</button>
+    </p>
+    <p id="pendingLine"></p>
+    <button class="btn btn-success" id="publishBtn">Publish pending changes</button>
+    <div class="vhs-ok" id="publishMsg" role="status"></div>
+    <hr>
+    <p>To edit images, open any page of the site in this same browser tab session — edit controls appear automatically.</p>
+    <p><a href="../index.html">Go to the site &rarr;</a></p>
+  </div>
+
+  <div class="vhs-card">
+    <h4>Change my password</h4>
+    <form id="pwForm" class="form-inline">
+      <input class="form-control" id="pwCur" type="password" placeholder="Current password" autocomplete="current-password" required>
+      <input class="form-control" id="pwNew" type="password" placeholder="New password (min 10)" autocomplete="new-password" required>
+      <button class="btn btn-default" type="submit">Update</button>
+    </form>
+    <div class="vhs-err" id="pwMsg" role="alert"></div>
+  </div>
+
+  <div class="vhs-card vhs-hidden" id="usersCard">
+    <h4>Users</h4>
+    <table class="vhs-table"><tbody id="usersBody"></tbody></table>
+    <hr>
+    <h5>Add a user</h5>
+    <form id="newUserForm" class="form-inline">
+      <input class="form-control" id="nuName" placeholder="username" required>
+      <input class="form-control" id="nuPass" type="password" placeholder="password (min 10)" autocomplete="new-password" required>
+      <select class="form-control" id="nuRole"><option value="editor">editor</option><option value="owner">owner</option></select>
+      <button class="btn btn-primary" type="submit">Create</button>
+    </form>
+    <div class="vhs-err" id="usersMsg" role="alert"></div>
+  </div>
+</div>
+
+<script>
+    // Served from localhost -> talk to `wrangler dev`. Anywhere else -> production.
+    // This removes the need to hand-edit (and remember to revert) this line for local testing.
+    window.VHS_API_BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+      ? 'http://localhost:8787'
+      : 'https://api.vhspurnea.com';
+  </script>
+<script src="admin.js"></script>
+</body>
+</html>
