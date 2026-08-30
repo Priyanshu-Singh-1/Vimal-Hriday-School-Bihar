@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "vhs-admin"
-database_id = "local-placeholder-replace-before-remote-deploy"
+database_id = "abcb91ca-f475-4c19-bf0c-1f3c6d84431e"
 migrations_dir = "migrations"
 
 [[r2_buckets]]
@@ -22,5 +22,8 @@ GITHUB_REPO = "Priyanshu-Singh-1/Vimal-Hriday-School-Bihar"
 # names any other branch, publishing cannot alter vhspurnea.com. Switch to
 # "main" only at go-live, after the DNS move and the custom domains are up.
 GITHUB_BRANCH = "feat/admin-image-management"
-R2_PUBLIC_BASE = "https://img.vhspurnea.com"
+# Staging: the bucket's own r2.dev URL, which needs no DNS. Switch to
+# https://img.vhspurnea.com at go-live, once the zone is on Cloudflare and the
+# bucket has that custom domain attached.
+R2_PUBLIC_BASE = "https://pub-c2938dd31a774bf793fdb1726e4c5e3b.r2.dev"
 ALLOWED_ORIGINS = "https://vhspurnea.com,https://www.vhspurnea.com"
