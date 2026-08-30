@@ -26,4 +26,7 @@ GITHUB_BRANCH = "feat/admin-image-management"
 # https://img.vhspurnea.com at go-live, once the zone is on Cloudflare and the
 # bucket has that custom domain attached.
 R2_PUBLIC_BASE = "https://pub-c2938dd31a774bf793fdb1726e4c5e3b.r2.dev"
+# The live site's own origin, used to turn a slot's page-relative
+# `original_src` into an absolute URL for the admin console's thumbnails.
+SITE_BASE = "https://vhspurnea.com"
 ALLOWED_ORIGINS = "https://vhspurnea.com,https://www.vhspurnea.com"
