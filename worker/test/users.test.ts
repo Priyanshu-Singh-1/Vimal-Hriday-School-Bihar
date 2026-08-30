@@ -61,6 +61,14 @@ describe('owner actions', () => {
     expect(JSON.stringify(list)).not.toMatch(/password_hash|salt/);
   });
 
+  it('includes displayName, falling back to username when unset or empty', async () => {
+    await env.DB.prepare(`UPDATE users SET display_name = 'Sister Anita' WHERE username = 'owner1'`).run();
+    await env.DB.prepare(`UPDATE users SET display_name = '' WHERE username = 'editor1'`).run();
+    const list = await (await api(ownerToken, '/')).json<any[]>();
+    expect(list.find((u) => u.username === 'owner1')?.displayName).toBe('Sister Anita');
+    expect(list.find((u) => u.username === 'editor1')?.displayName).toBe('editor1');
+  });
+
   it('has no account-creation route, even for an owner', async () => {
     const res = await api(ownerToken, '/', {
       method: 'POST',
