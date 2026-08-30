@@ -44,12 +44,21 @@ describe('GET /slots', () => {
     expect((await exports.default.fetch('https://api.test/v1/slots?page=x')).status).toBe(401);
   });
 
-  it('lists slots for a page with the currently rendered src', async () => {
+  it('lists slots for a page with the currently rendered src, resolved to an absolute URL', async () => {
     const res = await api(t, '?page=pages/about/OurFounder.html');
     expect(res.status).toBe(200);
     const list = await res.json<any[]>();
     expect(list).toHaveLength(2);
-    expect(list[0]).toMatchObject({ id: 'p.img.1', src: '../../resources/management/founder.jpg', optional: 0 });
+    expect(list[0]).toMatchObject({
+      id: 'p.img.1',
+      src: 'https://vhspurnea.com/resources/management/founder.jpg',
+      optional: 0,
+    });
+  });
+
+  it('returns an absolute src for every slot, edited or not', async () => {
+    const list = await (await api(t, '?page=pages/about/OurFounder.html')).json<any[]>();
+    for (const slot of list) expect(slot.src).toMatch(/^https:\/\//);
   });
 
   it('returns an empty array for a page with no slots', async () => {
@@ -133,7 +142,7 @@ describe('revert and clear', () => {
     await api(t, '/p.img.1', { method: 'PUT', body: JSON.stringify({ r2Key: 'up/ab/new.deadbeef.webp', alt: 'x' }) });
     const res = await api(t, '/p.img.1/revert', { method: 'POST' });
     expect(res.status).toBe(200);
-    expect((await res.json<any>()).src).toBe('../../resources/management/founder.jpg');
+    expect((await res.json<any>()).src).toBe('https://vhspurnea.com/resources/management/founder.jpg');
     const slot = await env.DB.prepare(`SELECT r2_key FROM slots WHERE id='p.img.1'`).first<any>();
     expect(slot.r2_key).toBeNull();
   });
