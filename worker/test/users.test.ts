@@ -41,6 +41,9 @@ beforeEach(async () => {
 describe('authorisation', () => {
   it('blocks an editor from every owner-only route', async () => {
     expect((await api(editorToken, '/')).status).toBe(403);
+    // Owner-only middleware runs before route matching, so an editor still gets
+    // 403 here even though the POST handler no longer exists (an owner hitting
+    // this same path gets 404 instead — see the "no account-creation route" test).
     expect((await api(editorToken, '/', { method: 'POST', body: JSON.stringify({ username: 'x', password: 'passwordlong', role: 'editor' }) })).status).toBe(403);
     const target = await env.DB.prepare(`SELECT id FROM users WHERE username='editor1'`).first<any>();
     expect((await api(editorToken, `/${target.id}`, { method: 'DELETE' })).status).toBe(403);
@@ -58,20 +61,12 @@ describe('owner actions', () => {
     expect(JSON.stringify(list)).not.toMatch(/password_hash|salt/);
   });
 
-  it('creates an editor who can then log in', async () => {
+  it('has no account-creation route, even for an owner', async () => {
     const res = await api(ownerToken, '/', {
       method: 'POST',
       body: JSON.stringify({ username: 'teacher', password: 'teacherpass1', role: 'editor' }),
     });
-    expect(res.status).toBe(201);
-    expect((await res.json<any>()).username).toBe('teacher');
-    expect(await tokenFor('teacher', 'teacherpass1')).toBeTruthy();
-  });
-
-  it('rejects a duplicate username, a short password, and a bad role', async () => {
-    expect((await api(ownerToken, '/', { method: 'POST', body: JSON.stringify({ username: 'editor1', password: 'passwordlong', role: 'editor' }) })).status).toBe(409);
-    expect((await api(ownerToken, '/', { method: 'POST', body: JSON.stringify({ username: 'newbie', password: 'short', role: 'editor' }) })).status).toBe(400);
-    expect((await api(ownerToken, '/', { method: 'POST', body: JSON.stringify({ username: 'newbie', password: 'passwordlong', role: 'admin' }) })).status).toBe(400);
+    expect(res.status).toBe(404);
   });
 
   it('resets another user password and invalidates their sessions', async () => {

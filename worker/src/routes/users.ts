@@ -5,7 +5,6 @@ import { writeAudit } from '../lib/audit';
 import { requireAuth, requireOwner } from '../lib/middleware';
 
 const MIN_PASSWORD = 10;
-const USERNAME_RE = /^[a-z0-9][a-z0-9._-]{2,31}$/i;
 
 export const users = new Hono<{ Bindings: Env; Variables: Vars }>();
 
@@ -23,36 +22,9 @@ users.get('/', async (c) => {
   return c.json(results);
 });
 
-users.post('/', async (c) => {
-  let body: { username?: unknown; password?: unknown; role?: unknown };
-  try {
-    body = await c.req.json();
-  } catch {
-    return c.json({ error: 'invalid body' }, 400);
-  }
-  const { username, password, role } = body;
-  if (typeof username !== 'string' || !USERNAME_RE.test(username)) {
-    return c.json({ error: 'invalid username' }, 400);
-  }
-  if (typeof password !== 'string' || password.length < MIN_PASSWORD) {
-    return c.json({ error: `password must be at least ${MIN_PASSWORD} characters` }, 400);
-  }
-  if (role !== 'owner' && role !== 'editor') {
-    return c.json({ error: 'role must be owner or editor' }, 400);
-  }
-
-  const exists = await c.env.DB.prepare('SELECT id FROM users WHERE username = ?').bind(username).first();
-  if (exists) return c.json({ error: 'username already exists' }, 409);
-
-  const { hash, salt, iterations } = await hashPassword(password);
-  const row = await c.env.DB.prepare(
-    `INSERT INTO users (username, password_hash, salt, iterations, role)
-     VALUES (?,?,?,?,?) RETURNING id, username, role, created_at`,
-  ).bind(username, hash, salt, iterations, role).first();
-
-  await writeAudit(c.env.DB, c.var.user, 'user.create', username, { role });
-  return c.json(row, 201);
-});
+// Account creation is intentionally backend-only in Phase 1 (deliberate security
+// decision by the product owner): there is no POST / here. New accounts are
+// provisioned from the backend via `tools/bin/create-user.mjs`.
 
 users.patch('/:id', async (c) => {
   const id = Number(c.req.param('id'));
