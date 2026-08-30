@@ -2,7 +2,8 @@ import { Hono } from 'hono';
 import type { Env, Vars } from '../env';
 import { requireAuth } from '../lib/middleware';
 import { writeAudit } from '../lib/audit';
-import { slotSrc, type SlotRow } from '../render/slot';
+import type { SlotRow } from '../render/slot';
+import { slotAbsoluteSrc } from '../lib/urls';
 
 export const slots = new Hono<{ Bindings: Env; Variables: Vars }>();
 
@@ -24,7 +25,7 @@ const SELECT = `SELECT id, page_path, label, optional, r2_key, original_src, alt
 
 type SlotWithMeta = SlotRow & { updated_at: string };
 
-function shape(row: SlotWithMeta, base: string) {
+function shape(row: SlotWithMeta, r2Base: string, siteBase: string) {
   return {
     id: row.id,
     pagePath: row.page_path,
@@ -32,7 +33,7 @@ function shape(row: SlotWithMeta, base: string) {
     optional: row.optional,
     alt: row.alt,
     r2Key: row.r2_key,
-    src: slotSrc(row, base),
+    src: slotAbsoluteSrc(row, r2Base, siteBase),
     updatedAt: row.updated_at,
   };
 }
@@ -43,7 +44,7 @@ slots.get('/', async (c) => {
   const { results } = await c.env.DB.prepare(`${SELECT} WHERE page_path = ? ORDER BY id`)
     .bind(page)
     .all<SlotWithMeta>();
-  return c.json(results.map((r) => shape(r, c.env.R2_PUBLIC_BASE)));
+  return c.json(results.map((r) => shape(r, c.env.R2_PUBLIC_BASE, c.env.SITE_BASE)));
 });
 
 async function load(db: D1Database, id: string): Promise<SlotWithMeta | null> {
@@ -67,7 +68,10 @@ slots.put('/:id', async (c) => {
 
   const ifMatch = c.req.header('If-Match');
   if (ifMatch && ifMatch !== slot.updated_at) {
-    return c.json({ error: 'slot changed since it was loaded', current: shape(slot, c.env.R2_PUBLIC_BASE) }, 409);
+    return c.json(
+      { error: 'slot changed since it was loaded', current: shape(slot, c.env.R2_PUBLIC_BASE, c.env.SITE_BASE) },
+      409,
+    );
   }
 
   const asset = await c.env.DB.prepare('SELECT r2_key FROM assets WHERE r2_key = ?').bind(r2Key).first();
@@ -83,7 +87,7 @@ slots.put('/:id', async (c) => {
   await writeAudit(c.env.DB, c.var.user, 'slot.update', id, { r2Key, from: slot.r2_key });
 
   const updated = await load(c.env.DB, id);
-  return c.json(shape(updated!, c.env.R2_PUBLIC_BASE));
+  return c.json(shape(updated!, c.env.R2_PUBLIC_BASE, c.env.SITE_BASE));
 });
 
 slots.post('/:id/revert', async (c) => {
@@ -98,7 +102,7 @@ slots.post('/:id/revert', async (c) => {
   await writeAudit(c.env.DB, c.var.user, 'slot.revert', id, { from: slot.r2_key });
 
   const updated = await load(c.env.DB, id);
-  return c.json(shape(updated!, c.env.R2_PUBLIC_BASE));
+  return c.json(shape(updated!, c.env.R2_PUBLIC_BASE, c.env.SITE_BASE));
 });
 
 slots.delete('/:id/image', async (c) => {
