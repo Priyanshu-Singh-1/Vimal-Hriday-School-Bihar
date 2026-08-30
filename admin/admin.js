@@ -1,238 +1,248 @@
 (function () {
   'use strict';
+
+  // Shared helpers for every admin screen — API base resolution, the
+  // sessionStorage token, the purple header, and the status strip. Each
+  // screen's own file (this one for 01/02, pages.js for 03, and so on)
+  // calls into window.VHS instead of re-implementing these pieces.
   var API = window.VHS_API_BASE;
   var TOKEN_KEY = 'vhs_admin_token';
-  var USER_KEY = 'vhs_admin_user';
 
   var $ = function (id) { return document.getElementById(id); };
   var show = function (el, on) { el.classList[on ? 'remove' : 'add']('vhs-hidden'); };
-  var text = function (el, s, cls) { el.textContent = s || ''; if (cls) el.className = cls; };
 
-  var ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-  function escapeHtml(s) {
-    return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) { return ESCAPE_MAP[ch]; });
+  function hasSession() {
+    return !!sessionStorage.getItem(TOKEN_KEY);
   }
 
-  function token() { return sessionStorage.getItem(TOKEN_KEY); }
-  function user() { try { return JSON.parse(sessionStorage.getItem(USER_KEY) || 'null'); } catch (e) { return null; } }
+  function clearSession() {
+    sessionStorage.removeItem(TOKEN_KEY);
+  }
 
-  function api(path, opts) {
-    opts = opts || {};
-    var headers = opts.headers || {};
-    if (token()) headers.Authorization = 'Bearer ' + token();
-    if (opts.body) headers['Content-Type'] = 'application/json';
-    return fetch(API + path, {
-      method: opts.method || 'GET',
-      headers: headers,
-      body: opts.body ? JSON.stringify(opts.body) : undefined
-    }).then(function (res) {
-      return res.json().catch(function () { return {}; }).then(function (body) {
-        if (!res.ok) throw new Error(body.error || ('request failed: ' + res.status));
-        return body;
+  function authHeaders() {
+    return { Authorization: 'Bearer ' + sessionStorage.getItem(TOKEN_KEY) };
+  }
+
+  // Every screen but sign-in itself sends the operator here on 401 or sign
+  // out. `index.html` picks the sign-in view because clearSession() has
+  // already run by the time it loads.
+  function goToSignIn() {
+    clearSession();
+    location.href = 'index.html';
+  }
+
+  function pageSentence(count) {
+    return count === 1
+      ? '1 page changed. It is not on the website yet.'
+      : count + ' pages changed. They are not on the website yet.';
+  }
+
+  // Wires the shared purple header's "Signed in as" name and "Sign out"
+  // button, per README "02 — Home" / "03 — Pick a page". `opts.onUser`, if
+  // given, receives the full user record (e.g. to show owner-only tiles).
+  function initHeader(opts) {
+    var userNameEl = opts.userNameId ? $(opts.userNameId) : null;
+    var signOutBtn = opts.signOutBtnId ? $(opts.signOutBtnId) : null;
+
+    fetch(API + '/v1/auth/me', { headers: authHeaders() }).then(function (res) {
+      if (res.status === 401) { goToSignIn(); return; }
+      return res.json().then(function (user) {
+        if (userNameEl) userNameEl.textContent = user.displayName;
+        if (opts.onUser) opts.onUser(user);
+      });
+    }).catch(function () { /* offline: leave the last-known header state on screen */ });
+
+    if (signOutBtn) {
+      signOutBtn.addEventListener('click', function () {
+        fetch(API + '/v1/auth/logout', { method: 'POST', headers: authHeaders() }).then(function () {
+          goToSignIn();
+        }).catch(function () { goToSignIn(); });
+      });
+    }
+  }
+
+  // Wires the shared status strip, driven by GET /v1/publish/pending, per
+  // README "The status strip". Screen 06 (the publish confirmation modal)
+  // does not exist yet, so the button stays a commented seam — never
+  // publish directly from here.
+  function initStatusStrip(ids) {
+    var stripEl = $(ids.stripId);
+    var iconPending = $(ids.iconPendingId);
+    var iconClean = $(ids.iconCleanId);
+    var textEl = $(ids.textId);
+    var btn = $(ids.btnId);
+
+    function render(count) {
+      var pending = count > 0;
+      show(iconPending, pending);
+      show(iconClean, !pending);
+      stripEl.classList[pending ? 'add' : 'remove']('is-pending');
+      textEl.textContent = pending ? pageSentence(count) : 'Everything is on the website.';
+      btn.disabled = !pending;
+    }
+
+    // Screen 06 (the publish confirmation modal) does not exist yet. Wire
+    // the button to this seam only — replace with the real modal call once
+    // 06 lands.
+    btn.addEventListener('click', function () {
+      if (btn.disabled) return;
+      // TODO: open the screen 06 publish confirmation modal once it exists.
+    });
+
+    fetch(API + '/v1/publish/pending', { headers: authHeaders() }).then(function (res) {
+      if (res.status === 401) { goToSignIn(); return; }
+      return res.json().then(function (body) { render(body.count); });
+    }).catch(function () { /* offline: leave the last-known strip state on screen */ });
+  }
+
+  window.VHS = {
+    API: API,
+    TOKEN_KEY: TOKEN_KEY,
+    $: $,
+    show: show,
+    hasSession: hasSession,
+    clearSession: clearSession,
+    authHeaders: authHeaders,
+    goToSignIn: goToSignIn,
+    pageSentence: pageSentence,
+    initHeader: initHeader,
+    initStatusStrip: initStatusStrip
+  };
+
+  // ---- Screens 01 (sign in) and 02 (home) — both views live in index.html ----
+  // Guarded on the sign-in view existing so this block is a no-op on every
+  // other screen's file that merely loads admin.js for window.VHS.
+
+  function initHome() {
+    var tilePeople = $('tilePeople');
+    var tileActivity = $('tileActivity');
+
+    initHeader({
+      userNameId: 'homeUserName',
+      signOutBtnId: 'signOutBtn',
+      onUser: function (user) {
+        show(tilePeople, user.role === 'owner');
+        show(tileActivity, user.role === 'owner');
+      }
+    });
+
+    initStatusStrip({
+      stripId: 'statusStrip',
+      iconPendingId: 'statusStripIconPending',
+      iconCleanId: 'statusStripIconClean',
+      textId: 'statusStripText',
+      btnId: 'statusStripBtn'
+    });
+  }
+
+  function initSignIn() {
+    var card = $('signinCard');
+    var alertEl = $('signinAlert');
+    var fields = $('signinFields');
+    var forgot = $('signinForgot');
+    var usernameInput = $('signinUsername');
+    var passwordInput = $('signinPassword');
+    var submitBtn = $('signinSubmit');
+    var lockoutTimer = null;
+
+    function resetAlert() {
+      show(alertEl, false);
+      card.classList.remove('has-alert');
+      usernameInput.classList.remove('is-error');
+      passwordInput.classList.remove('is-error');
+    }
+
+    function showAlert(message) {
+      alertEl.textContent = message;
+      show(alertEl, true);
+      card.classList.add('has-alert');
+    }
+
+    function setInputsDisabled(disabled) {
+      usernameInput.disabled = disabled;
+      passwordInput.disabled = disabled;
+      submitBtn.disabled = disabled;
+    }
+
+    function showWrongCredentials() {
+      resetAlert();
+      showAlert('Wrong username or password. Please try again.');
+      usernameInput.classList.add('is-error');
+      passwordInput.classList.add('is-error');
+      passwordInput.value = '';
+    }
+
+    function showLockedOut(retryAfterSeconds) {
+      resetAlert();
+      showAlert('Too many tries. Please wait 15 minutes and try again.');
+      fields.classList.add('is-disabled');
+      setInputsDisabled(true);
+      show(forgot, true);
+
+      // The Worker enforces the actual lock-out window; retryAfterSeconds is
+      // its real remaining time, not an assumed 15 minutes, so the form
+      // re-enables exactly when the Worker would accept another attempt.
+      clearTimeout(lockoutTimer);
+      lockoutTimer = setTimeout(function () {
+        resetAlert();
+        fields.classList.remove('is-disabled');
+        setInputsDisabled(false);
+        show(forgot, false);
+      }, retryAfterSeconds * 1000);
+    }
+
+    function readRetryAfterSeconds(res, body) {
+      if (body && typeof body.retryAfterSeconds === 'number') return body.retryAfterSeconds;
+      var header = res.headers.get('Retry-After');
+      var seconds = header ? parseInt(header, 10) : NaN;
+      return isNaN(seconds) ? 15 * 60 : seconds;
+    }
+
+    $('signinForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      resetAlert();
+      setInputsDisabled(true);
+
+      fetch(API + '/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: usernameInput.value, password: passwordInput.value })
+      }).then(function (res) {
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          if (res.ok) {
+            sessionStorage.setItem(TOKEN_KEY, body.token);
+            location.href = './';
+            return;
+          }
+          if (res.status === 401) {
+            showWrongCredentials();
+            setInputsDisabled(false);
+          } else if (res.status === 429) {
+            // showLockedOut manages its own re-enable timer; do not undo it here.
+            showLockedOut(readRetryAfterSeconds(res, body));
+          } else {
+            // Any other status is a server-side fault, not an operator mistake.
+            // There is no verbatim copy for it (MICROCOPY.md covers only wrong
+            // credentials and rate-limiting on this screen), so it is left as
+            // a silent re-enable rather than inventing a message.
+            setInputsDisabled(false);
+          }
+        });
+      }).catch(function () {
+        // A rejected fetch (no response at all) is the offline case.
+        showAlert('You are not connected to the internet. Your changes are safe. Please connect and try again.');
+        setInputsDisabled(false);
       });
     });
   }
 
-  function signOutLocal() {
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
-    show($('appView'), false);
-    show($('loginView'), true);
-  }
-
-  $('loginForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    text($('loginErr'), '');
-    $('loginBtn').disabled = true;
-    api('/v1/auth/login', { method: 'POST', body: { username: $('u').value, password: $('p').value } })
-      .then(function (r) {
-        sessionStorage.setItem(TOKEN_KEY, r.token);
-        sessionStorage.setItem(USER_KEY, JSON.stringify(r.user));
-        $('p').value = '';
-        boot();
-      })
-      .catch(function (err) { text($('loginErr'), err.message); })
-      .then(function () { $('loginBtn').disabled = false; });
-  });
-
-  $('logoutBtn').addEventListener('click', function () {
-    api('/v1/auth/logout', { method: 'POST' }).catch(function () {}).then(signOutLocal);
-  });
-
-  $('pwForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    api('/v1/auth/password', {
-      method: 'POST',
-      body: { currentPassword: $('pwCur').value, newPassword: $('pwNew').value }
-    })
-      .then(function () {
-        text($('pwMsg'), 'Password updated. Please sign in again.', 'vhs-ok');
-        setTimeout(signOutLocal, 1500);
-      })
-      .catch(function (err) { text($('pwMsg'), err.message, 'vhs-err'); });
-  });
-
-  function refreshPending() {
-    return api('/v1/publish/pending').then(function (r) {
-      $('pendingLine').textContent = r.count
-        ? r.count + ' page(s) waiting to publish: ' + r.pages.map(function (p) { return p.pagePath; }).join(', ')
-        : 'Everything is published.';
-      $('publishBtn').disabled = r.count === 0;
-    });
-  }
-
-  $('publishBtn').addEventListener('click', function () {
-    $('publishBtn').disabled = true;
-    text($('publishMsg'), 'Publishing…', 'vhs-ok');
-    api('/v1/publish', { method: 'POST' })
-      .then(function (r) {
-        text($('publishMsg'), r.commit
-          ? 'Published ' + r.pages.length + ' page(s). Live in about a minute.'
-          : 'Nothing needed publishing.', 'vhs-ok');
-      })
-      .catch(function (err) { text($('publishMsg'), err.message, 'vhs-err'); })
-      .then(refreshPending);
-  });
-
-  function renderPages(list) {
-    $('pagesBody').innerHTML = '';
-    list.forEach(function (p) {
-      var tr = document.createElement('tr');
-      var td = document.createElement('td');
-      var a = document.createElement('a');
-      a.href = '../' + p.pagePath;
-      a.textContent = p.label;
-      td.appendChild(a);
-      var count = document.createElement('div');
-      count.className = 'vhs-muted';
-      count.textContent = p.slotCount + (p.slotCount === 1 ? ' photograph' : ' photographs');
-      td.appendChild(count);
-      if (p.editedCount > 0) {
-        var changed = document.createElement('div');
-        changed.className = 'vhs-muted';
-        changed.textContent = p.editedCount + ' changed, not yet published';
-        td.appendChild(changed);
-      }
-      tr.appendChild(td);
-      $('pagesBody').appendChild(tr);
-    });
-  }
-
-  function loadPages() {
-    return api('/v1/pages').then(renderPages).catch(function (e) {
-      text($('pagesMsg'), e.message, 'vhs-err');
-    });
-  }
-
-  function renderUsers(list) {
-    var me = user();
-    $('usersBody').innerHTML = '';
-    list.forEach(function (row) {
-      var tr = document.createElement('tr');
-      var badge = '<span class="vhs-badge-' + row.role + '">' + row.role + '</span>';
-      tr.innerHTML = '<td>' + row.username + '</td><td>' + badge +
-        '</td><td>' + (row.last_login_at || 'never') + '</td>';
-      var td = document.createElement('td');
-      if (me && row.id !== me.id) {
-        var del = document.createElement('button');
-        del.className = 'btn btn-danger btn-xs';
-        del.textContent = 'Delete';
-        del.addEventListener('click', function () {
-          if (!confirm('Delete ' + row.username + '?')) return;
-          api('/v1/users/' + row.id, { method: 'DELETE' })
-            .then(loadUsers)
-            .catch(function (e) { text($('usersMsg'), e.message, 'vhs-err'); });
-        });
-        td.appendChild(del);
-      }
-      tr.appendChild(td);
-      $('usersBody').appendChild(tr);
-    });
-  }
-
-  function loadUsers() {
-    return api('/v1/users').then(renderUsers).catch(function (e) {
-      text($('usersMsg'), e.message, 'vhs-err');
-    });
-  }
-
-  var auditNextBefore = null;
-
-  function describeAudit(e) {
-    var actor = '<strong>' + escapeHtml(e.actor) + '</strong>';
-    var target = escapeHtml(e.target);
-    var where = e.pageLabel ? escapeHtml(e.pageLabel) : target;
-    switch (e.action) {
-      case 'auth.login': return actor + ' signed in';
-      case 'auth.logout': return actor + ' signed out';
-      case 'auth.password_change': return actor + ' changed their password';
-      case 'user.create': return actor + ' created the account ' + target;
-      case 'user.delete': return actor + ' deleted the account ' + target;
-      case 'user.role_change': return actor + ' changed the role of ' + target;
-      case 'user.password_reset': return actor + ' reset the password for ' + target;
-      case 'asset.upload':
-        var kb = (e.detail && typeof e.detail.bytes === 'number') ? Math.round(e.detail.bytes / 1024) : null;
-        return actor + ' uploaded a photograph' + (kb !== null ? ' (' + kb + ' KB)' : '');
-      case 'slot.update': return actor + ' replaced a photograph on ' + where;
-      case 'slot.revert': return actor + ' restored the original photograph on ' + where;
-      case 'slot.clear': return actor + ' removed a photograph from ' + where;
-      case 'publish':
-        var n = (e.detail && e.detail.pages && e.detail.pages.length) || 0;
-        var ref = e.target ? escapeHtml(e.target.slice(0, 7)) : '';
-        return actor + ' published ' + n + ' page(s)' + (ref ? ' <span class="vhs-muted">' + ref + '</span>' : '');
-      default:
-        return actor + ' — ' + escapeHtml(e.action);
+  if ($('signinPage')) {
+    if (hasSession()) {
+      $('signinPage').classList.add('vhs-hidden');
+      show($('homeView'), true);
+      initHome();
+    } else {
+      initSignIn();
     }
   }
-
-  function renderAuditRows(list) {
-    list.forEach(function (e) {
-      var tr = document.createElement('tr');
-      var td = document.createElement('td');
-      td.innerHTML = '<div>' + describeAudit(e) + '</div><div class="vhs-muted">' + escapeHtml(e.at) + '</div>';
-      tr.appendChild(td);
-      $('auditBody').appendChild(tr);
-    });
-  }
-
-  function loadAudit(reset) {
-    if (reset) {
-      $('auditBody').innerHTML = '';
-      auditNextBefore = null;
-    }
-    var qs = '?limit=50' + (auditNextBefore ? '&before=' + auditNextBefore : '');
-    return api('/v1/audit' + qs).then(function (r) {
-      renderAuditRows(r.entries);
-      auditNextBefore = r.nextBefore;
-      show($('auditMoreBtn'), auditNextBefore !== null);
-      text($('auditMsg'), '');
-    }).catch(function (e) {
-      text($('auditMsg'), e.message, 'vhs-err');
-    });
-  }
-
-  $('auditMoreBtn').addEventListener('click', function () { loadAudit(false); });
-
-  function boot() {
-    if (!token()) { show($('loginView'), true); show($('appView'), false); return; }
-    api('/v1/auth/me')
-      .then(function (me) {
-        sessionStorage.setItem(USER_KEY, JSON.stringify(me));
-        $('whoami').textContent = me.username;
-        $('whorole').innerHTML = '<span class="vhs-badge-' + me.role + '">' + me.role + '</span>';
-        show($('loginView'), false);
-        show($('appView'), true);
-        show($('usersCard'), me.role === 'owner');
-        show($('auditCard'), me.role === 'owner');
-        loadPages();
-        refreshPending();
-        if (me.role === 'owner') {
-          loadUsers();
-          loadAudit(true);
-        }
-      })
-      .catch(signOutLocal);
-  }
-
-  boot();
 })();
