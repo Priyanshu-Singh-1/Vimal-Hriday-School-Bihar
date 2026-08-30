@@ -1,10 +1,374 @@
-body.vhs-admin { background: #f5f5f5; font-family: Raleway, Arial, sans-serif; }
-.vhs-card { background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 20px; margin: 20px auto; max-width: 900px; }
-.vhs-card.narrow { max-width: 420px; }
-.vhs-err { color: #a94442; margin-top: 10px; min-height: 20px; }
-.vhs-ok { color: #3c763d; margin-top: 10px; min-height: 20px; }
+/* =========================================================================
+   Vimal Hriday admin console — shared design tokens and components.
+   Source of truth: design_handoff_admin_console/README.md ("Design tokens"
+   and "The status strip"). Every admin screen builds on these; do not
+   duplicate token values elsewhere. css/style.css (public site) is never
+   touched from here.
+   ========================================================================= */
+
+:root {
+  --vhs-purple: #614BC3;
+  --vhs-purple-hover: #4A37A0;
+  --vhs-teal: #33BBC5;
+  --vhs-mint: #C8FFE0;
+  --vhs-green: #3C763D;
+  --vhs-green-surface: #DFF0D8;
+  --vhs-green-border: #D6E9C6;
+  --vhs-red: #A94442;
+  --vhs-red-surface: #F2DEDE;
+  --vhs-red-border: #EBCCD1;
+  --vhs-page-bg: #F5F5F5;
+  --vhs-card: #FFFFFF;
+  --vhs-border: #DDDDDD;
+  --vhs-text: #222222;
+  --vhs-muted: #777777;
+  --vhs-radius: 4px;
+}
+
+/* ---- Base ---- */
+
+body.vhs-admin {
+  margin: 0;
+  background: var(--vhs-page-bg);
+  font: 400 16px/26px Raleway, Arial, sans-serif;
+  color: var(--vhs-text);
+}
+
 .vhs-hidden { display: none !important; }
-.vhs-badge-owner { background: #614BC3; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
-.vhs-badge-editor { background: #33BBC5; color: #fff; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
-table.vhs-table { width: 100%; } table.vhs-table td, table.vhs-table th { padding: 8px; border-bottom: 1px solid #eee; }
-.vhs-muted { color: #777; font-size: 12px; }
+
+.vhs-content { max-width: 900px; margin: 0 auto; }
+
+/* Every focusable control gets a visible ring — required for the operator
+   navigating by keyboard, not just decoration. */
+a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:focus {
+  outline: 2px solid var(--vhs-purple);
+  outline-offset: 2px;
+}
+
+/* ---- Type ramp ---- */
+
+.vhs-h-screen  { margin: 0; font: 700 30px 'PT Serif', serif; color: var(--vhs-text); }
+.vhs-h-success { margin: 0; font: 700 32px/42px 'PT Serif', serif; color: var(--vhs-text); }
+.vhs-h-card    { margin: 0; font: 700 22px 'PT Serif', serif; color: var(--vhs-text); }
+.vhs-h-row     { margin: 0; font: 700 20px 'PT Serif', serif; color: var(--vhs-text); }
+.vhs-h-modal   { margin: 0; font: 700 22px 'PT Serif', serif; color: var(--vhs-text); }
+
+.vhs-body       { font: 400 16px/26px Raleway, Arial, sans-serif; color: var(--vhs-text); }
+.vhs-body-tight { font: 400 16px/24px Raleway, Arial, sans-serif; color: var(--vhs-text); }
+.vhs-label      { font: 600 16px Raleway, Arial, sans-serif; color: var(--vhs-text); }
+.vhs-muted-text { font: 400 16px Raleway, Arial, sans-serif; color: var(--vhs-muted); }
+.vhs-activity-text { font: 400 17px/26px Raleway, Arial, sans-serif; color: var(--vhs-text); }
+
+/* ---- Buttons ---- */
+/* Four variants + the on-purple-header variant, per the 00 specimen artboard. */
+
+.vhs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  border-radius: var(--vhs-radius);
+  font: 600 18px Raleway, Arial, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+.vhs-btn:disabled, .vhs-btn.is-disabled { cursor: not-allowed; }
+
+.vhs-btn-lg { height: 48px; }
+
+.vhs-btn-primary {
+  background: var(--vhs-purple);
+  color: #FFFFFF;
+  border: 1px solid var(--vhs-purple);
+}
+.vhs-btn-primary:hover { background: var(--vhs-purple-hover); border-color: var(--vhs-purple-hover); }
+.vhs-btn-primary:disabled, .vhs-btn-primary.is-disabled {
+  background: var(--vhs-page-bg);
+  color: var(--vhs-muted);
+  border-color: var(--vhs-border);
+}
+
+.vhs-btn-secondary {
+  background: var(--vhs-card);
+  color: var(--vhs-text);
+  border: 1px solid var(--vhs-border);
+}
+.vhs-btn-secondary:hover { background: var(--vhs-page-bg); }
+
+.vhs-btn-destructive {
+  height: 44px;
+  background: var(--vhs-card);
+  color: var(--vhs-red);
+  border: 1px solid var(--vhs-red);
+}
+.vhs-btn-destructive:hover { background: var(--vhs-red-surface); color: var(--vhs-red); }
+
+.vhs-btn-publish {
+  height: 52px;
+  background: var(--vhs-green);
+  color: #FFFFFF;
+  border: 1px solid var(--vhs-green);
+}
+.vhs-btn-publish:disabled, .vhs-btn-publish.is-disabled {
+  background: var(--vhs-page-bg);
+  color: var(--vhs-muted);
+  border-color: var(--vhs-border);
+}
+
+.vhs-btn-on-purple {
+  height: 44px;
+  background: transparent;
+  color: #FFFFFF;
+  border: 1px solid #FFFFFF;
+}
+
+.vhs-btn-block { display: flex; width: 100%; }
+
+/* ---- Role badges ---- */
+
+.vhs-badge {
+  display: inline-block;
+  border-radius: var(--vhs-radius);
+  padding: 5px 10px;
+  font: 600 15px Raleway, Arial, sans-serif;
+  color: #FFFFFF;
+}
+.vhs-badge-editor { background: var(--vhs-teal); }
+.vhs-badge-owner  { background: var(--vhs-purple); }
+
+/* ---- Alerts ---- */
+
+.vhs-alert {
+  border-radius: var(--vhs-radius);
+  padding: 14px 16px;
+  font: 600 16px/24px Raleway, Arial, sans-serif;
+}
+.vhs-alert-error   { background: var(--vhs-red-surface); border: 1px solid var(--vhs-red-border); color: var(--vhs-red); }
+.vhs-alert-success { background: var(--vhs-green-surface); border: 1px solid var(--vhs-green-border); color: var(--vhs-green); }
+
+/* ---- Form controls ---- */
+
+.vhs-field { display: flex; flex-direction: column; gap: 8px; }
+
+.vhs-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid var(--vhs-border);
+  border-radius: var(--vhs-radius);
+  font: 400 16px Raleway, Arial, sans-serif;
+  color: var(--vhs-text);
+  background: var(--vhs-card);
+}
+.vhs-input.is-error { border-color: var(--vhs-red); }
+.vhs-input:disabled { background: var(--vhs-page-bg); color: var(--vhs-muted); }
+
+/* ---- Panels / rows (page list, people, activity) ---- */
+
+.vhs-panel { background: var(--vhs-card); border: 1px solid var(--vhs-border); border-radius: var(--vhs-radius); }
+.vhs-row { border-bottom: 1px solid var(--vhs-border); }
+.vhs-row:last-child { border-bottom: none; }
+.vhs-row:hover { background: var(--vhs-page-bg); }
+
+/* ---- Status strip (present on every signed-in screen) ---- */
+
+.vhs-status-strip {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top: 2px solid var(--vhs-purple);
+  background: var(--vhs-card);
+  height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+.vhs-status-strip.is-pending { background: var(--vhs-mint); }
+
+.vhs-status-strip-message { display: flex; align-items: center; gap: 14px; }
+.vhs-status-strip-text { font: 600 19px Raleway, Arial, sans-serif; color: var(--vhs-text); }
+.vhs-status-strip-pages { font: 400 15px/22px Raleway, Arial, sans-serif; color: #333333; }
+
+.vhs-status-strip-btn {
+  height: 52px;
+  padding: 0 26px;
+  border-radius: var(--vhs-radius);
+  font: 600 18px Raleway, Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  background: var(--vhs-green);
+  color: #FFFFFF;
+  border: 1px solid var(--vhs-green);
+  cursor: pointer;
+}
+.vhs-status-strip-btn:disabled {
+  background: var(--vhs-page-bg);
+  color: var(--vhs-muted);
+  border-color: var(--vhs-border);
+  cursor: not-allowed;
+}
+
+/* ---- Header band (purple, repeats on every signed-in screen) ---- */
+
+.vhs-header {
+  box-sizing: border-box;
+  height: 64px;
+  background: var(--vhs-purple);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+.vhs-header-left { display: flex; align-items: center; gap: 14px; }
+.vhs-header-logo { height: 44px; width: auto; }
+.vhs-header-title { font: 700 20px 'PT Serif', serif; color: #FFFFFF; }
+.vhs-header-right { display: flex; align-items: center; gap: 16px; }
+.vhs-header-user { font: 400 16px Raleway, Arial, sans-serif; color: #FFFFFF; }
+
+/* ---- Screen 01 — Sign in ---- */
+
+.vhs-signin-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--vhs-page-bg);
+  box-sizing: border-box;
+}
+
+.vhs-signin-card {
+  width: 480px;
+  box-sizing: border-box;
+  background: var(--vhs-card);
+  border: 1px solid var(--vhs-border);
+  border-radius: var(--vhs-radius);
+  padding: 40px;
+}
+
+.vhs-signin-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+/* The address line only appears in the default frame — the error and
+   locked-out frames drop it to make room for the alert (measured off the
+   canvas; README is silent on this). */
+.vhs-signin-card.has-alert .vhs-signin-header { margin-bottom: 24px; }
+.vhs-signin-card.has-alert .vhs-signin-subtitle { display: none; }
+
+.vhs-signin-logo { height: 84px; width: auto; }
+.vhs-signin-title { margin: 0; font: 700 26px/34px 'PT Serif', serif; color: var(--vhs-text); text-align: center; }
+.vhs-signin-subtitle { font: 400 16px Raleway, Arial, sans-serif; color: var(--vhs-muted); text-align: center; }
+
+.vhs-signin-alert { margin-bottom: 20px; }
+
+.vhs-signin-fields { display: flex; flex-direction: column; gap: 20px; }
+.vhs-signin-fields.is-disabled { opacity: .5; }
+
+.vhs-signin-forgot { margin-top: 20px; font: 400 16px/24px Raleway, Arial, sans-serif; color: var(--vhs-muted); }
+
+/* ---- Screen 02 — Home ---- */
+
+.vhs-home-page { padding-bottom: 78px; } /* keeps content clear of the fixed status strip */
+
+.vhs-home-body { box-sizing: border-box; padding: 40px 24px 0; }
+.vhs-home-heading { margin-bottom: 8px; }
+.vhs-home-reassurance { margin-bottom: 28px; }
+
+.vhs-tile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.vhs-tile {
+  box-sizing: border-box;
+  background: var(--vhs-card);
+  border: 1px solid var(--vhs-border);
+  border-radius: var(--vhs-radius);
+  padding: 24px;
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  text-decoration: none;
+}
+.vhs-tile-icon { flex: none; margin-top: 2px; }
+.vhs-tile-title { margin-bottom: 6px; }
+.vhs-tile-desc { font: 400 16px/24px Raleway, Arial, sans-serif; color: #444444; }
+
+/* ---- Screen 03 — Pick a page ---- */
+
+.vhs-pages-page { padding-bottom: 78px; } /* keeps content clear of the fixed status strip */
+
+.vhs-pages-body { box-sizing: border-box; padding: 32px 24px 0; }
+
+.vhs-back-link {
+  display: inline-block;
+  font: 400 16px Raleway, Arial, sans-serif;
+  color: var(--vhs-purple);
+  text-decoration: none;
+  margin-bottom: 14px;
+}
+
+.vhs-pages-heading { margin-bottom: 24px; }
+
+.vhs-page-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 20px;
+}
+.vhs-page-row-info { flex: 1; }
+.vhs-page-row-meta { margin-top: 4px; }
+
+.vhs-page-thumbs { flex: none; display: flex; gap: 6px; }
+.vhs-page-thumb {
+  display: block;
+  width: 60px;
+  height: 44px;
+  object-fit: cover;
+  border: 1px solid var(--vhs-border);
+}
+.vhs-page-thumb-more {
+  box-sizing: border-box;
+  width: 60px;
+  height: 44px;
+  border: 1px solid var(--vhs-border);
+  background: var(--vhs-page-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 600 14px Raleway, Arial, sans-serif;
+  color: var(--vhs-muted);
+}
+
+.vhs-page-row-btn { flex: none; padding: 0 20px; }
+
+/* ---- One breakpoint ---- */
+
+@media (max-width: 767px) {
+  .vhs-tile-grid { grid-template-columns: 1fr; }
+
+  .vhs-status-strip {
+    height: auto;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .vhs-status-strip-text { font: 600 17px/24px Raleway, Arial, sans-serif; }
+  .vhs-status-strip-btn {
+    width: 100%;
+    height: 50px;
+    justify-content: center;
+  }
+}
