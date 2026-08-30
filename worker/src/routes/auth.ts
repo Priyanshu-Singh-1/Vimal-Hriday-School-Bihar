@@ -5,6 +5,7 @@ import { signSession } from '../lib/jwt';
 import { checkLoginRate, recordLoginFailure } from '../lib/ratelimit';
 import { writeAudit } from '../lib/audit';
 import { requireAuth } from '../lib/middleware';
+import { resolveDisplayName } from '../lib/displayName';
 
 const MIN_PASSWORD = 10;
 
@@ -23,18 +24,21 @@ auth.post('/login', async (c) => {
   }
 
   const ip = c.req.header('CF-Connecting-IP') ?? 'unknown';
-  if (!(await checkLoginRate(c.env.DB, ip))) {
-    return c.json({ error: 'too many attempts' }, 429);
+  const rate = await checkLoginRate(c.env.DB, ip);
+  if (!rate.allowed) {
+    c.header('Retry-After', String(rate.retryAfterSeconds));
+    return c.json({ error: 'too many attempts', retryAfterSeconds: rate.retryAfterSeconds }, 429);
   }
 
   const row = await c.env.DB.prepare(
-    `SELECT id, username, password_hash, salt, iterations, role, token_version
+    `SELECT id, username, password_hash, salt, iterations, role, token_version, display_name
      FROM users WHERE username = ?`,
   )
     .bind(username)
     .first<{
       id: number; username: string; password_hash: string; salt: string;
       iterations: number; role: 'owner' | 'editor'; token_version: number;
+      display_name: string | null;
     }>();
 
   // Hash even when the user is unknown so the timing profile does not leak existence.
@@ -52,11 +56,20 @@ auth.post('/login', async (c) => {
   });
   await c.env.DB.prepare(`UPDATE users SET last_login_at = datetime('now') WHERE id = ?`)
     .bind(row.id).run();
-  await writeAudit(c.env.DB, { id: row.id, username: row.username, role: row.role }, 'auth.login');
+  await writeAudit(
+    c.env.DB,
+    { id: row.id, username: row.username, role: row.role, displayName: resolveDisplayName(row.display_name, row.username) },
+    'auth.login',
+  );
 
   return c.json({
     token,
-    user: { id: row.id, username: row.username, role: row.role },
+    user: {
+      id: row.id,
+      username: row.username,
+      role: row.role,
+      displayName: resolveDisplayName(row.display_name, row.username),
+    },
     expiresAt: Math.floor(Date.now() / 1000) + 8 * 60 * 60,
   });
 });
