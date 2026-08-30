@@ -20,8 +20,24 @@ describe('create-user.mjs', () => {
     const lines = stdout.trim().split('\n');
     expect(lines).toHaveLength(1);
     expect(lines[0]).toMatch(
-      /^INSERT INTO users \(username, password_hash, salt, iterations, role\) VALUES \('teacher2', '[A-Za-z0-9+/=]+', '[A-Za-z0-9+/=]+', 100000, 'editor'\);$/,
+      /^INSERT INTO users \(username, password_hash, salt, iterations, role, display_name\) VALUES \('teacher2', '[A-Za-z0-9+/=]+', '[A-Za-z0-9+/=]+', 100000, 'editor', NULL\);$/,
     );
+  });
+
+  it('includes the display name when provided as a 4th argument', () => {
+    const { status, stdout } = run(['teacher3', 'teacherpass99', 'editor', 'Mr Ranjan']);
+    expect(status).toBe(0);
+    const lines = stdout.trim().split('\n');
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatch(
+      /^INSERT INTO users \(username, password_hash, salt, iterations, role, display_name\) VALUES \('teacher3', '[A-Za-z0-9+/=]+', '[A-Za-z0-9+/=]+', 100000, 'editor', 'Mr Ranjan'\);$/,
+    );
+  });
+
+  it('escapes single quotes in the display name by doubling them', () => {
+    const { status, stdout } = run(['teacher3', 'teacherpass99', 'editor', "Sister O'Brien"]);
+    expect(status).toBe(0);
+    expect(stdout).toContain("'Sister O''Brien'");
   });
 
   it('rejects a password shorter than 10 characters', () => {
