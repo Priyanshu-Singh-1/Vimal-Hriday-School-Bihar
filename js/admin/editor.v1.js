@@ -1,12 +1,38 @@
 (function () {
   'use strict';
 
-  // Overridable via window.VHS_API_BASE. Otherwise: served from localhost -> `wrangler dev`,
-  // anywhere else -> production. The site pages that load this bundle set no global, so it
-  // must pick a sensible default on its own.
-  var API = window.VHS_API_BASE || (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-    ? 'http://localhost:8787'
-    : 'https://api.vhspurnea.com');
+  // API base resolution order (highest priority first):
+  //   0. An already-set window.VHS_API_BASE (the admin console may have set one).
+  //   1. `?api=<url>` on this page's URL - persisted to localStorage (key vhs_api_base)
+  //      so it survives navigating to a page with no query string. `?api=` (empty) or
+  //      `?api=reset` clears a stored override.
+  //   2. A previously persisted localStorage override.
+  //   3. Hostname default: localhost/127.0.0.1 -> local `wrangler dev`, else production.
+  // Exists so a local browser can be pointed at a deployed Worker (e.g. when
+  // `wrangler dev --remote` is unavailable) instead of only localhost/production.
+  function vhsResolveApiBase() {
+    var KEY = 'vhs_api_base';
+    var deflt = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+      ? 'http://localhost:8787'
+      : 'https://api.vhspurnea.com';
+    var m = /[?&]api=([^&]*)/.exec(location.search);
+    var q = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : null;
+    if (q !== null) {
+      if (q === '' || q === 'reset') {
+        try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+        return deflt;
+      }
+      if (/^https?:\/\//.test(q)) {
+        try { localStorage.setItem(KEY, q); } catch (e) { /* ignore */ }
+        return q;
+      }
+      // malformed value: ignore and fall through to a stored/default base
+    }
+    var stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (e) { stored = null; }
+    return (stored && /^https?:\/\//.test(stored)) ? stored : deflt;
+  }
+  var API = window.VHS_API_BASE || vhsResolveApiBase();
   var TOKEN_KEY = 'vhs_admin_token';
   var MAX_EDGE = 1920;
   var THUMB_EDGE = 400;
