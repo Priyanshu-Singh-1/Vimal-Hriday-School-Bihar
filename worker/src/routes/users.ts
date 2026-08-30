@@ -3,6 +3,7 @@ import type { Env, Vars } from '../env';
 import { hashPassword } from '../lib/password';
 import { writeAudit } from '../lib/audit';
 import { requireAuth, requireOwner } from '../lib/middleware';
+import { resolveDisplayName } from '../lib/displayName';
 
 const MIN_PASSWORD = 10;
 
@@ -17,9 +18,21 @@ async function ownerCount(db: D1Database): Promise<number> {
 
 users.get('/', async (c) => {
   const { results } = await c.env.DB.prepare(
-    `SELECT id, username, role, created_at, last_login_at FROM users ORDER BY id`,
-  ).all();
-  return c.json(results);
+    `SELECT id, username, display_name, role, created_at, last_login_at FROM users ORDER BY id`,
+  ).all<{
+    id: number; username: string; display_name: string | null; role: string;
+    created_at: string; last_login_at: string | null;
+  }>();
+  return c.json(
+    results.map((r) => ({
+      id: r.id,
+      username: r.username,
+      displayName: resolveDisplayName(r.display_name, r.username),
+      role: r.role,
+      created_at: r.created_at,
+      last_login_at: r.last_login_at,
+    })),
+  );
 });
 
 // Account creation is intentionally backend-only in Phase 1 (deliberate security
