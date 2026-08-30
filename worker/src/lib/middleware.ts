@@ -1,6 +1,7 @@
 import type { MiddlewareHandler } from 'hono';
 import type { Env, SessionUser, Vars } from '../env';
 import { verifySession } from './jwt';
+import { resolveDisplayName } from './displayName';
 
 type Ctx = { Bindings: Env; Variables: Vars };
 
@@ -11,14 +12,22 @@ export const requireAuth: MiddlewareHandler<Ctx> = async (c, next) => {
   if (!claims) return c.json({ error: 'unauthorized' }, 401);
 
   const row = await c.env.DB.prepare(
-    'SELECT id, username, role, token_version FROM users WHERE id = ?',
+    'SELECT id, username, role, token_version, display_name FROM users WHERE id = ?',
   )
     .bind(claims.sub)
-    .first<{ id: number; username: string; role: 'owner' | 'editor'; token_version: number }>();
+    .first<{
+      id: number; username: string; role: 'owner' | 'editor'; token_version: number;
+      display_name: string | null;
+    }>();
 
   if (!row || row.token_version !== claims.tv) return c.json({ error: 'unauthorized' }, 401);
 
-  const user: SessionUser = { id: row.id, username: row.username, role: row.role };
+  const user: SessionUser = {
+    id: row.id,
+    username: row.username,
+    role: row.role,
+    displayName: resolveDisplayName(row.display_name, row.username),
+  };
   c.set('user', user);
   await next();
 };
