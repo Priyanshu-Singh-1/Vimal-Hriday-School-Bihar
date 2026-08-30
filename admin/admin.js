@@ -8,6 +8,11 @@
   var show = function (el, on) { el.classList[on ? 'remove' : 'add']('vhs-hidden'); };
   var text = function (el, s, cls) { el.textContent = s || ''; if (cls) el.className = cls; };
 
+  var ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (ch) { return ESCAPE_MAP[ch]; });
+  }
+
   function token() { return sessionStorage.getItem(TOKEN_KEY); }
   function user() { try { return JSON.parse(sessionStorage.getItem(USER_KEY) || 'null'); } catch (e) { return null; } }
 
@@ -151,15 +156,62 @@
     });
   }
 
-  $('newUserForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    api('/v1/users', {
-      method: 'POST',
-      body: { username: $('nuName').value, password: $('nuPass').value, role: $('nuRole').value }
-    })
-      .then(function () { $('nuName').value = ''; $('nuPass').value = ''; text($('usersMsg'), ''); return loadUsers(); })
-      .catch(function (err) { text($('usersMsg'), err.message, 'vhs-err'); });
-  });
+  var auditNextBefore = null;
+
+  function describeAudit(e) {
+    var actor = '<strong>' + escapeHtml(e.actor) + '</strong>';
+    var target = escapeHtml(e.target);
+    var where = e.pageLabel ? escapeHtml(e.pageLabel) : target;
+    switch (e.action) {
+      case 'auth.login': return actor + ' signed in';
+      case 'auth.logout': return actor + ' signed out';
+      case 'auth.password_change': return actor + ' changed their password';
+      case 'user.create': return actor + ' created the account ' + target;
+      case 'user.delete': return actor + ' deleted the account ' + target;
+      case 'user.role_change': return actor + ' changed the role of ' + target;
+      case 'user.password_reset': return actor + ' reset the password for ' + target;
+      case 'asset.upload':
+        var kb = (e.detail && typeof e.detail.bytes === 'number') ? Math.round(e.detail.bytes / 1024) : null;
+        return actor + ' uploaded a photograph' + (kb !== null ? ' (' + kb + ' KB)' : '');
+      case 'slot.update': return actor + ' replaced a photograph on ' + where;
+      case 'slot.revert': return actor + ' restored the original photograph on ' + where;
+      case 'slot.clear': return actor + ' removed a photograph from ' + where;
+      case 'publish':
+        var n = (e.detail && e.detail.pages && e.detail.pages.length) || 0;
+        var ref = e.target ? escapeHtml(e.target.slice(0, 7)) : '';
+        return actor + ' published ' + n + ' page(s)' + (ref ? ' <span class="vhs-muted">' + ref + '</span>' : '');
+      default:
+        return actor + ' — ' + escapeHtml(e.action);
+    }
+  }
+
+  function renderAuditRows(list) {
+    list.forEach(function (e) {
+      var tr = document.createElement('tr');
+      var td = document.createElement('td');
+      td.innerHTML = '<div>' + describeAudit(e) + '</div><div class="vhs-muted">' + escapeHtml(e.at) + '</div>';
+      tr.appendChild(td);
+      $('auditBody').appendChild(tr);
+    });
+  }
+
+  function loadAudit(reset) {
+    if (reset) {
+      $('auditBody').innerHTML = '';
+      auditNextBefore = null;
+    }
+    var qs = '?limit=50' + (auditNextBefore ? '&before=' + auditNextBefore : '');
+    return api('/v1/audit' + qs).then(function (r) {
+      renderAuditRows(r.entries);
+      auditNextBefore = r.nextBefore;
+      show($('auditMoreBtn'), auditNextBefore !== null);
+      text($('auditMsg'), '');
+    }).catch(function (e) {
+      text($('auditMsg'), e.message, 'vhs-err');
+    });
+  }
+
+  $('auditMoreBtn').addEventListener('click', function () { loadAudit(false); });
 
   function boot() {
     if (!token()) { show($('loginView'), true); show($('appView'), false); return; }
@@ -171,9 +223,13 @@
         show($('loginView'), false);
         show($('appView'), true);
         show($('usersCard'), me.role === 'owner');
+        show($('auditCard'), me.role === 'owner');
         loadPages();
         refreshPending();
-        if (me.role === 'owner') loadUsers();
+        if (me.role === 'owner') {
+          loadUsers();
+          loadAudit(true);
+        }
       })
       .catch(signOutLocal);
   }

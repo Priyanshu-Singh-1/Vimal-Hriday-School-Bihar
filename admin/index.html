@@ -62,23 +62,50 @@
     <h4>Users</h4>
     <table class="vhs-table"><tbody id="usersBody"></tbody></table>
     <hr>
-    <h5>Add a user</h5>
-    <form id="newUserForm" class="form-inline">
-      <input class="form-control" id="nuName" placeholder="username" required>
-      <input class="form-control" id="nuPass" type="password" placeholder="password (min 10)" autocomplete="new-password" required>
-      <select class="form-control" id="nuRole"><option value="editor">editor</option><option value="owner">owner</option></select>
-      <button class="btn btn-primary" type="submit">Create</button>
-    </form>
+    <p class="vhs-muted">New staff accounts are created by your developer on request.</p>
     <div class="vhs-err" id="usersMsg" role="alert"></div>
+  </div>
+
+  <div class="vhs-card vhs-hidden" id="auditCard">
+    <h4>Recent activity</h4>
+    <table class="vhs-table"><tbody id="auditBody"></tbody></table>
+    <button class="btn btn-default btn-sm vhs-hidden" id="auditMoreBtn">Load more</button>
+    <div class="vhs-err" id="auditMsg" role="alert"></div>
   </div>
 </div>
 
 <script>
-    // Served from localhost -> talk to `wrangler dev`. Anywhere else -> production.
-    // This removes the need to hand-edit (and remember to revert) this line for local testing.
-    window.VHS_API_BASE = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
-      ? 'http://localhost:8787'
-      : 'https://api.vhspurnea.com';
+    // API base resolution order (highest priority first):
+    //   1. `?api=<url>` on this page's URL - persisted to localStorage (key vhs_api_base)
+    //      so it survives navigating to a page with no query string. `?api=` (empty) or
+    //      `?api=reset` clears a stored override.
+    //   2. A previously persisted localStorage override.
+    //   3. Hostname default: localhost/127.0.0.1 -> local `wrangler dev`, else production.
+    // Exists so a local browser can be pointed at a deployed Worker (e.g. when
+    // `wrangler dev --remote` is unavailable) instead of only localhost/production.
+    function vhsResolveApiBase() {
+      var KEY = 'vhs_api_base';
+      var deflt = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+        ? 'http://localhost:8787'
+        : 'https://api.vhspurnea.com';
+      var m = /[?&]api=([^&]*)/.exec(location.search);
+      var q = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : null;
+      if (q !== null) {
+        if (q === '' || q === 'reset') {
+          try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+          return deflt;
+        }
+        if (/^https?:\/\//.test(q)) {
+          try { localStorage.setItem(KEY, q); } catch (e) { /* ignore */ }
+          return q;
+        }
+        // malformed value: ignore and fall through to a stored/default base
+      }
+      var stored = null;
+      try { stored = localStorage.getItem(KEY); } catch (e) { stored = null; }
+      return (stored && /^https?:\/\//.test(stored)) ? stored : deflt;
+    }
+    window.VHS_API_BASE = vhsResolveApiBase();
   </script>
 <script src="admin.js"></script>
 </body>

@@ -7,6 +7,7 @@ import { uploads } from './routes/uploads';
 import { slots } from './routes/slots';
 import { pages } from './routes/pages';
 import { publish, publishPending, sweepUnboundAssets } from './routes/publish';
+import { audit } from './routes/audit';
 import { sweepLoginAttempts } from './lib/ratelimit';
 
 // strict: false so `/v1/users` and `/v1/users/` both match. Hono is strict by
@@ -36,6 +37,7 @@ app.route('/v1/uploads', uploads);
 app.route('/v1/slots', slots);
 app.route('/v1/pages', pages);
 app.route('/v1/publish', publish);
+app.route('/v1/audit', audit);
 
 export default {
   fetch: app.fetch,
