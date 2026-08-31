@@ -112,8 +112,7 @@
     return row;
   }
 
-  function renderPages(list) {
-    var panel = VHS.$('pagesPanel');
+  function renderPages(panel, list) {
     var ordered = orderPages(list);
     var i;
     for (i = 0; i < ordered.length; i++) {
@@ -131,10 +130,29 @@
       btnId: 'statusStripBtn'
     });
 
-    fetch(API + '/v1/pages', { headers: VHS.authHeaders() }).then(function (res) {
-      if (res.status === 401) { VHS.goToSignIn(); return; }
-      return res.json().then(function (list) { renderPages(list); });
-    }).catch(function () { /* offline: leave the panel empty; last-known list stays cached by the browser's back-forward cache, if any */ });
+    var panel = VHS.$('pagesPanel');
+    var loadedOnce = false;
+
+    // README "12": the loading block while this first GET /v1/pages is in
+    // flight; the offline block in its place if it fails before ever
+    // loading (a background retry failure instead leaves the panel as-is).
+    function load() {
+      if (!loadedOnce) VHS.showLoading(panel);
+      fetch(API + '/v1/pages', { headers: VHS.authHeaders() }).then(function (res) {
+        if (res.status === 401) { VHS.showSessionExpired(); return; }
+        return res.json().then(function (list) {
+          loadedOnce = true;
+          panel.innerHTML = '';
+          renderPages(panel, list);
+        });
+      }).catch(function () {
+        if (!loadedOnce) VHS.showOffline(panel, load);
+      });
+    }
+
+    window.addEventListener('offline', function () { if (!loadedOnce) VHS.showOffline(panel, load); });
+    window.addEventListener('online', function () { if (!loadedOnce) load(); });
+    load();
   }
 
   if (!VHS.hasSession()) {
