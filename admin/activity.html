@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>What changed recently — Vimal Hriday English Medium School</title>
+  <link rel="icon" href="../resources/images/logo.png">
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:400,700" rel="stylesheet">
+  <link href="//fonts.googleapis.com/css?family=Raleway:200,300,400,500,600,700" rel="stylesheet">
+  <link href="../css/bootstrap.css" rel="stylesheet">
+  <link href="admin.css" rel="stylesheet">
+</head>
+<body class="vhs-admin">
+
+<div class="vhs-activity-page" id="activityPage">
+
+  <div class="vhs-header">
+    <div class="vhs-header-left">
+      <img class="vhs-header-logo" src="../resources/images/logo.png" alt="School logo">
+      <div class="vhs-header-title">Vimal Hriday School — website manager</div>
+    </div>
+    <div class="vhs-header-right">
+      <div class="vhs-header-user">Signed in as <b id="activityUserName"></b></div>
+      <button class="vhs-btn vhs-btn-on-purple" type="button" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <div class="vhs-content vhs-activity-body">
+    <h1 class="vhs-h-screen vhs-activity-heading">What changed recently</h1>
+    <div class="vhs-muted-text vhs-activity-sub">The last 50 changes. Newest first.</div>
+
+    <div class="vhs-hidden" id="activityContent">
+      <div class="vhs-panel" id="activityRows"></div>
+      <div class="vhs-activity-more vhs-hidden" id="activityMoreWrap">
+        <button class="vhs-btn vhs-btn-secondary" type="button" id="activityMoreBtn">Load more</button>
+      </div>
+    </div>
+
+    <div class="vhs-activity-empty vhs-hidden" id="activityEmpty">
+      <div class="vhs-h-card vhs-activity-empty-heading">No changes yet</div>
+      <div class="vhs-activity-empty-body">When somebody changes a photo, it will be listed here.</div>
+      <a class="vhs-btn vhs-btn-primary vhs-activity-empty-action" href="pages.html">Change photos on a page</a>
+    </div>
+
+    <!-- Non-photo tile icons, copied verbatim from the design canvas
+         (admin-console-design.dc.html, artboard "10 ACTIVITY"); cloned into
+         each row's tile by activity.js rather than built from a string, so
+         no markup is ever assembled from interpolated data. -->
+    <template id="activityIconPublish"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3c763d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-10"></path></svg></template>
+    <template id="activityIconPeople"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="1.8" stroke-linecap="round"><circle cx="10" cy="8" r="3.2"></circle><path d="M4.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"></path></svg></template>
+  </div>
+
+  <div class="vhs-status-strip" id="statusStrip">
+    <div class="vhs-status-strip-message">
+      <svg id="statusStripIconPending" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.8" stroke-linecap="round" class="vhs-hidden"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v.5M12 11.5V16"></path></svg>
+      <svg id="statusStripIconClean" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3c763d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="vhs-hidden"><path d="M5 13l4 4 10-10"></path></svg>
+      <div class="vhs-status-strip-text" id="statusStripText"></div>
+    </div>
+    <button class="vhs-status-strip-btn" type="button" id="statusStripBtn" disabled>Put my changes on the website</button>
+  </div>
+
+</div>
+
+<script>
+    // API base resolution order (highest priority first):
+    //   1. `?api=<url>` on this page's URL - persisted to localStorage (key vhs_api_base)
+    //      so it survives navigating to a page with no query string. `?api=` (empty) or
+    //      `?api=reset` clears a stored override.
+    //   2. A previously persisted localStorage override.
+    //   3. Hostname default: localhost/127.0.0.1 -> local `wrangler dev`, else production.
+    // Exists so a local browser can be pointed at a deployed Worker (e.g. when
+    // `wrangler dev --remote` is unavailable) instead of only localhost/production.
+    function vhsResolveApiBase() {
+      var KEY = 'vhs_api_base';
+      var deflt = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+        ? 'http://localhost:8787'
+        : 'https://api.vhspurnea.com';
+      var m = /[?&]api=([^&]*)/.exec(location.search);
+      var q = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : null;
+      if (q !== null) {
+        if (q === '' || q === 'reset') {
+          try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+          return deflt;
+        }
+        if (/^https?:\/\//.test(q)) {
+          try { localStorage.setItem(KEY, q); } catch (e) { /* ignore */ }
+          return q;
+        }
+        // malformed value: ignore and fall through to a stored/default base
+      }
+      var stored = null;
+      try { stored = localStorage.getItem(KEY); } catch (e) { stored = null; }
+      return (stored && /^https?:\/\//.test(stored)) ? stored : deflt;
+    }
+    window.VHS_API_BASE = vhsResolveApiBase();
+  </script>
+<script src="admin.js"></script>
+<script src="activity.js"></script>
+</body>
+</html>
