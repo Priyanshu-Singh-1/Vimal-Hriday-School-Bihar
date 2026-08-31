@@ -232,6 +232,11 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
 .vhs-header-right { display: flex; align-items: center; gap: 16px; }
 .vhs-header-user { font: 400 16px Raleway, Arial, sans-serif; color: #FFFFFF; }
 
+/* Mobile (README "11") swaps the full desktop title for a short one. Both
+   strings live in the markup at all times; only one is ever visible, so no
+   script has to rewrite text per breakpoint. */
+.vhs-header-title-short { display: none; }
+
 /* ---- Screen 01 — Sign in ---- */
 
 .vhs-signin-page {
@@ -353,10 +358,377 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
 
 .vhs-page-row-btn { flex: none; padding: 0 20px; }
 
+/* ---- Screen 12 — States sheet (loading / empty / offline / signed-out /
+   conflict), shared by every console screen via window.VHS's showLoading /
+   showOffline / showSessionExpired. The empty state itself has no shared
+   component here — it was already built per-screen (see .vhs-activity-empty
+   above) before this task and already matches these exact values. ---- */
+
+.vhs-state-loading { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.vhs-state-loading-text { font: 600 18px Raleway, Arial, sans-serif; color: var(--vhs-text); }
+
+.vhs-skeleton { display: flex; flex-direction: column; gap: 10px; }
+.vhs-skeleton-line { height: 18px; background: var(--vhs-page-bg); border: 1px solid var(--vhs-border); }
+.vhs-skeleton-line-short { width: 80%; }
+.vhs-skeleton-block { height: 120px; background: var(--vhs-page-bg); border: 1px solid var(--vhs-border); }
+
+.vhs-state-alert-error { background: var(--vhs-red-surface); border: 1px solid var(--vhs-red-border); border-radius: var(--vhs-radius); padding: 16px; }
+.vhs-state-alert-title { font: 600 18px/26px Raleway, Arial, sans-serif; color: var(--vhs-red); margin-bottom: 6px; }
+.vhs-state-alert-title:last-child { margin-bottom: 0; }
+.vhs-state-alert-body { font: 400 16px/24px Raleway, Arial, sans-serif; color: #333333; }
+
+/* Mint conflict panel (README "12": "Somebody else changed this photo..."). */
+.vhs-state-alert-mint { background: var(--vhs-mint); border: 1px solid #9FE6C0; border-radius: var(--vhs-radius); padding: 16px; }
+.vhs-state-alert-mint-text { font: 400 16px/24px Raleway, Arial, sans-serif; color: var(--vhs-text); }
+
+.vhs-state-actions { display: flex; gap: 12px; margin-top: 18px; }
+.vhs-state-action { height: 46px; padding: 0 20px; }
+
+/* Non-dismissable overlay for the signed-out state (README "Session": "on a
+   401 show the signed-out state and route to sign in") and, on a console
+   screen, the offline state — both can happen with no natural "content
+   area" to render into (e.g. mid-publish), so both use one fixed overlay. */
+.vhs-state-overlay-backdrop { position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: rgba(0, 0, 0, 0.5); z-index: 10000; }
+.vhs-state-overlay-panel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 480px; box-sizing: border-box; z-index: 10001; }
+
+/* ---- Screen 06 — Confirm dialogs ---- */
+/* Bootstrap 3 class names (`modal`, `fade`, `modal-backdrop`) are added
+   alongside these per README "Constraints" for familiarity, but Bootstrap's
+   own modal.js is never loaded — admin.js hand-rolls open/close/focus-trap,
+   so every visual value below is the only source of truth. */
+
+.vhs-modal-backdrop {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+}
+
+.vhs-modal-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 480px;
+  box-sizing: border-box;
+  background: var(--vhs-card);
+  border: 1px solid var(--vhs-border);
+  border-radius: var(--vhs-radius);
+  z-index: 10001;
+}
+
+.vhs-modal-header { padding: 18px 20px; border-bottom: 1px solid var(--vhs-border); }
+.vhs-modal-title { margin: 0; font: 700 22px 'PT Serif', serif; color: var(--vhs-text); }
+
+.vhs-modal-body { padding: 20px; }
+.vhs-modal-body-photo { display: flex; gap: 16px; }
+.vhs-modal-photo {
+  display: block;
+  width: 130px;
+  height: 92px;
+  object-fit: cover;
+  border: 1px solid var(--vhs-border);
+  flex: none;
+}
+.vhs-modal-text { font: 400 16px/25px Raleway, Arial, sans-serif; color: var(--vhs-text); }
+.vhs-modal-text + .vhs-modal-page-list { margin-top: 16px; }
+.vhs-modal-page-list + .vhs-modal-text { margin-top: 16px; }
+
+.vhs-modal-page-list { border: 1px solid var(--vhs-border); border-radius: var(--vhs-radius); }
+.vhs-modal-page-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--vhs-border);
+}
+.vhs-modal-page-row:last-child { border-bottom: none; }
+.vhs-modal-page-thumb {
+  display: block;
+  width: 64px;
+  height: 46px;
+  object-fit: cover;
+  border: 1px solid var(--vhs-border);
+  flex: none;
+}
+.vhs-modal-page-name { font: 600 16px Raleway, Arial, sans-serif; color: var(--vhs-text); }
+.vhs-modal-page-count { font: 400 15px Raleway, Arial, sans-serif; color: var(--vhs-muted); margin-left: auto; }
+
+.vhs-modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--vhs-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.vhs-modal-btn {
+  box-sizing: border-box;
+  height: 46px;
+  padding: 0 20px;
+  border-radius: var(--vhs-radius);
+  font: 600 18px Raleway, Arial, sans-serif;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.vhs-modal-btn-secondary { background: var(--vhs-card); color: var(--vhs-text); border: 1px solid var(--vhs-border); }
+.vhs-modal-btn-secondary:hover { background: var(--vhs-page-bg); }
+.vhs-modal-btn-primary { background: var(--vhs-purple); color: #FFFFFF; border: 1px solid var(--vhs-purple); }
+.vhs-modal-btn-primary:hover { background: var(--vhs-purple-hover); border-color: var(--vhs-purple-hover); }
+.vhs-modal-btn-confirm-publish { background: var(--vhs-green); color: #FFFFFF; border: 1px solid var(--vhs-green); }
+/* Destructive confirms are outlined red, never filled (README "06"). */
+.vhs-modal-btn-destructive { background: var(--vhs-card); color: var(--vhs-red); border: 1px solid var(--vhs-red); }
+.vhs-modal-btn-destructive:hover { background: var(--vhs-red-surface); color: var(--vhs-red); }
+
+/* ---- Screen 07 — Put on the website · success ---- */
+
+.vhs-published-page { padding-bottom: 78px; } /* keeps content clear of the fixed status strip */
+
+.vhs-published-body { box-sizing: border-box; padding: 72px 24px 0; }
+
+.vhs-published-card {
+  background: var(--vhs-card);
+  border: 1px solid var(--vhs-green-border);
+  border-radius: var(--vhs-radius);
+  padding: 44px;
+  text-align: center;
+}
+
+.vhs-published-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--vhs-green-surface);
+  border: 1px solid var(--vhs-green-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 22px;
+}
+
+.vhs-published-heading { margin-bottom: 12px; }
+
+.vhs-published-text {
+  font: 400 17px/27px Raleway, Arial, sans-serif;
+  color: #555555;
+  max-width: 620px;
+  margin: 0 auto 28px;
+}
+
+.vhs-published-actions { display: flex; gap: 12px; justify-content: center; }
+
+/* Visual-only "looks disabled" state for the status strip button: README
+   "The status strip" requires pressing it while nothing is pending to still
+   surface the "nothing to publish" line, so it is never made a truly
+   `disabled` control — this class reproduces the disabled look only. */
+.vhs-status-strip-btn.is-disabled {
+  background: var(--vhs-page-bg);
+  color: var(--vhs-muted);
+  border-color: var(--vhs-border);
+}
+
+/* ---- Screen 08 — Change my password ---- */
+
+.vhs-password-page { padding-bottom: 78px; } /* keeps content clear of the fixed status strip */
+
+.vhs-password-body {
+  box-sizing: border-box;
+  min-height: calc(100vh - 64px - 78px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.vhs-password-frame {
+  width: 620px;
+  box-sizing: border-box;
+  background: var(--vhs-page-bg);
+  border: 1px solid var(--vhs-border);
+  padding: 28px;
+}
+
+.vhs-password-card {
+  box-sizing: border-box;
+  background: var(--vhs-card);
+  border: 1px solid var(--vhs-border);
+  border-radius: var(--vhs-radius);
+  padding: 28px;
+}
+
+.vhs-password-heading { margin: 0 0 22px; font: 700 26px 'PT Serif', serif; color: var(--vhs-text); }
+
+.vhs-password-alert { margin-bottom: 20px; }
+
+.vhs-password-fields { display: flex; flex-direction: column; gap: 18px; }
+
+.vhs-password-actions { display: flex; gap: 12px; }
+
+/* ---- Screen 09 — People who can sign in (owner only) ---- */
+
+.vhs-people-page { padding-bottom: 78px; } /* keeps content clear of the fixed status strip */
+
+.vhs-people-body { box-sizing: border-box; padding: 32px 24px 0; }
+
+.vhs-people-heading { margin-bottom: 20px; }
+
+.vhs-people-alert { margin-bottom: 20px; }
+
+.vhs-people-table {
+  background: var(--vhs-card);
+  border: 1px solid var(--vhs-border);
+  border-radius: var(--vhs-radius);
+  overflow: hidden; /* clips the header row's flat top corners to the panel's radius */
+  margin-bottom: 26px;
+}
+
+.vhs-people-header-row,
+.vhs-people-row {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr 1fr 150px;
+  gap: 16px;
+  align-items: center;
+}
+
+.vhs-people-header-row {
+  padding: 14px 20px;
+  background: var(--vhs-page-bg);
+  border-bottom: 1px solid var(--vhs-border);
+  font: 600 16px Raleway, Arial, sans-serif;
+  color: var(--vhs-text);
+}
+
+.vhs-people-row { padding: 16px 20px; }
+
+.vhs-people-lastlogin { font: 400 16px Raleway, Arial, sans-serif; color: #444444; }
+
+/* Measured off the canvas (README's Button table gives 18px generically;
+   the 09 artboard's Remove control is 17px/16px-padding, so that literal
+   value wins here per README's own precedence rule). */
+.vhs-people-remove {
+  box-sizing: border-box;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: var(--vhs-radius);
+  background: var(--vhs-card);
+  color: var(--vhs-red);
+  border: 1px solid var(--vhs-red);
+  font: 600 17px Raleway, Arial, sans-serif;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.vhs-people-remove:hover { background: var(--vhs-red-surface); color: var(--vhs-red); }
+
+/* ---- Screen 10 — What changed recently (owner only) ---- */
+
+.vhs-activity-page { padding-bottom: 78px; } /* keeps content clear of the fixed status strip */
+
+.vhs-activity-body { box-sizing: border-box; padding: 32px 24px 0; }
+
+.vhs-activity-heading { margin-bottom: 8px; }
+.vhs-activity-sub { margin-bottom: 22px; }
+
+.vhs-activity-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+}
+
+.vhs-activity-thumb {
+  display: block;
+  width: 64px;
+  height: 46px;
+  object-fit: cover;
+  border: 1px solid var(--vhs-border);
+  flex: none;
+}
+
+/* Non-photo/neutral tile, same footprint as the thumbnail it replaces. */
+.vhs-activity-tile {
+  box-sizing: border-box;
+  width: 64px;
+  height: 46px;
+  border: 1px solid var(--vhs-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.vhs-activity-tile-publish { background: var(--vhs-mint); }
+.vhs-activity-tile-people  { background: var(--vhs-page-bg); }
+/* No thumbnail could be sourced for a photo event, and no other tile
+   pattern applies (README "10" defines only the publish/people tiles) —
+   the same grey fill without an icon, so it never reads as a broken image. */
+.vhs-activity-tile-neutral { background: var(--vhs-page-bg); }
+
+.vhs-activity-empty { text-align: center; padding: 34px 16px; }
+.vhs-activity-empty-heading { margin-bottom: 8px; }
+.vhs-activity-empty-body { font: 400 16px/24px Raleway, Arial, sans-serif; color: #555555; margin-bottom: 20px; }
+/* Measured off the 12 — States sheet canvas: this action is 46px tall,
+   narrower than the 44px/48px buttons already on the ramp. */
+.vhs-activity-empty-action { height: 46px; padding: 0 20px; }
+
+.vhs-activity-more { display: flex; justify-content: center; margin-top: 20px; }
+
 /* ---- One breakpoint ---- */
 
 @media (max-width: 767px) {
-  .vhs-tile-grid { grid-template-columns: 1fr; }
+  /* ---- Screen 01 — Sign in (README "11" frame 1) ---- */
+  /* The mobile frame anchors content to the top (40px padding) rather than
+     centering the card, and drops the card's own white box/border — the
+     canvas renders the fields directly on the page background. */
+  .vhs-signin-page { align-items: flex-start; }
+  .vhs-signin-card {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 40px 20px 0;
+  }
+  /* Canvas mobile frame renders logo + title only, no address line. */
+  .vhs-signin-subtitle { display: none; }
+  .vhs-signin-header { margin-bottom: 26px; }
+  .vhs-signin-logo { height: 76px; }
+  .vhs-signin-title { font: 700 24px/32px 'PT Serif', serif; }
+  .vhs-signin-fields { gap: 18px; }
+  .vhs-input { height: 48px; }
+  /* Scoped to the sign-in submit only — README "11" gives 50px for this one
+     button, not every `.vhs-btn-lg` on every screen. */
+  .vhs-signin-fields .vhs-btn-lg { height: 50px; }
+
+  /* ---- Screen 02 — Home (README "11" frame 2) ---- */
+  /* The purple header is shared by every signed-in screen (README "02"),
+     so this mobile treatment applies wherever `.vhs-header` renders. */
+  .vhs-header { height: auto; padding: 12px 16px; }
+  .vhs-header-left { gap: 10px; }
+  .vhs-header-logo { height: 34px; }
+  .vhs-header-title { font: 600 16px Raleway, Arial, sans-serif; flex: 1; }
+  .vhs-header-title-full { display: none; }
+  .vhs-header-title-short { display: inline; }
+  /* README "11" frame 2's header shows only logo, title and Sign out — the
+     "Signed in as" text is dropped from the bar at this width. */
+  .vhs-header-user { display: none; }
+  .vhs-btn-on-purple { height: 40px; }
+
+  .vhs-home-body { padding: 18px 16px 0; }
+  .vhs-home-heading { font: 700 24px 'PT Serif', serif; margin-bottom: 4px; }
+  /* README "11" frame 2's body goes straight from the title to the tiles at
+     this width (no reassurance line stated for mobile). */
+  .vhs-home-reassurance { display: none; }
+
+  .vhs-tile-grid { grid-template-columns: 1fr; gap: 10px; }
+  .vhs-tile {
+    /* These paddings are tight on purpose so the fourth tile clears the
+       taller mobile status strip — keep them (README "11"). */
+    padding: 13px 14px;
+  }
+  /* Canvas mobile tiles carry no icon, just title + description. */
+  .vhs-tile-icon { display: none; }
+  .vhs-tile-title { font: 700 19px 'PT Serif', serif; margin-bottom: 4px; }
+  .vhs-tile-desc { font: 400 15px/22px Raleway, Arial, sans-serif; }
 
   .vhs-status-strip {
     height: auto;
@@ -371,4 +743,8 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
     height: 50px;
     justify-content: center;
   }
+
+  /* README "Responsive": "the table becomes stacked rows" below 768px. */
+  .vhs-people-header-row { display: none; }
+  .vhs-people-row { grid-template-columns: 1fr; gap: 4px; }
 }
