@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Env, Vars } from '../env';
 import { requireAuth, requireOwner } from '../lib/middleware';
+import { resolveDisplayName } from '../lib/displayName';
 import { pageLabel } from './pages';
 
 export const audit = new Hono<{ Bindings: Env; Variables: Vars }>();
@@ -18,6 +19,8 @@ type AuditRow = {
   target: string | null;
   detail: string | null;
   page_path: string | null;
+  actor_username: string | null;
+  actor_display_name: string | null;
 };
 
 /** Parse the stored detail JSON, never throwing on malformed input. */
@@ -44,9 +47,11 @@ audit.get('/', async (c) => {
 
   const { results } = await c.env.DB.prepare(
     `SELECT audit_log.id, audit_log.created_at, audit_log.actor_name, audit_log.action,
-            audit_log.target, audit_log.detail, slots.page_path
+            audit_log.target, audit_log.detail, slots.page_path,
+            users.username AS actor_username, users.display_name AS actor_display_name
      FROM audit_log
      LEFT JOIN slots ON audit_log.target = slots.id
+     LEFT JOIN users ON audit_log.actor_id = users.id
      ${where}
      ORDER BY audit_log.id DESC
      LIMIT ?`,
@@ -61,6 +66,14 @@ audit.get('/', async (c) => {
     id: row.id,
     at: row.created_at,
     actor: row.actor_name,
+    // The account that made the change, resolved to its current display
+    // name; falls back to the username recorded at the time (actor_name)
+    // when that account has since been deleted (actor_id is ON DELETE SET
+    // NULL) — see design_handoff_admin_console/README.md ("10 — What
+    // changed recently").
+    actorDisplay: row.actor_username != null
+      ? resolveDisplayName(row.actor_display_name, row.actor_username)
+      : row.actor_name,
     action: row.action,
     target: row.target,
     detail: parseDetail(row.detail),
