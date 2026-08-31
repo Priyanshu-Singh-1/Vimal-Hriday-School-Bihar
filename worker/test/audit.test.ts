@@ -107,6 +107,33 @@ describe('GET /v1/audit', () => {
     expect(uploaded.detail).toEqual({ bytes: 12345, mime: 'image/webp' });
   });
 
+  it('reports actorDisplay as the display name of a still-existing account', async () => {
+    const t = await tokenFor('owner');
+    await env.DB.prepare('DELETE FROM audit_log').run();
+    const { hash, salt, iterations } = await hashPassword('somepassword1');
+    await env.DB.prepare(
+      `INSERT INTO users (username, password_hash, salt, iterations, role, display_name) VALUES (?,?,?,?,?,?)`,
+    ).bind('sranita', hash, salt, iterations, 'editor', 'Sister Anita').run();
+    const actor = await env.DB.prepare(`SELECT id FROM users WHERE username='sranita'`).first<any>();
+    await env.DB.prepare(
+      `INSERT INTO audit_log (actor_id, actor_name, action, target, detail) VALUES (?, ?, ?, NULL, NULL)`,
+    ).bind(actor.id, 'sranita', 'auth.login').run();
+
+    const body = await (await api(t)).json<any>();
+    expect(body.entries[0].actorDisplay).toBe('Sister Anita');
+    expect(body.entries[0].actor).toBe('sranita');
+  });
+
+  it('falls back actorDisplay to the recorded actor_name when the account has been deleted', async () => {
+    const t = await tokenFor('owner');
+    await env.DB.prepare('DELETE FROM audit_log').run();
+    await seedEntry('auth.login');
+
+    const body = await (await api(t)).json<any>();
+    expect(body.entries[0].actorDisplay).toBe('someone');
+    expect(body.entries[0].actor).toBe('someone');
+  });
+
   it('resolves pagePath/pageLabel for a slot target, and nulls for a non-slot target', async () => {
     const t = await tokenFor('owner');
     await env.DB.prepare(
