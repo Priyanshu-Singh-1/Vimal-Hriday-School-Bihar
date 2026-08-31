@@ -50,7 +50,16 @@
   <div class="vhs-header">
     <div class="vhs-header-left">
       <img class="vhs-header-logo" src="../resources/images/logo.png" alt="School logo">
-      <div class="vhs-header-title">Vimal Hriday School — website manager</div>
+      <div class="vhs-header-title">
+        <!-- README "11" (Mobile, 390x844): the header carries the short
+             "Website manager" title below 768px instead of the full desktop
+             title. Both strings are always in the DOM; admin.css alone
+             decides which one is visible, so no script needs to rewrite
+             text per breakpoint (see admin.css's mobile block, and the
+             matching carve-out in the coding contract for this screen). -->
+        <span class="vhs-header-title-full">Vimal Hriday School — website manager</span>
+        <span class="vhs-header-title-short">Website manager</span>
+      </div>
     </div>
     <div class="vhs-header-right">
       <div class="vhs-header-user">Signed in as <b id="homeUserName"></b></div>
