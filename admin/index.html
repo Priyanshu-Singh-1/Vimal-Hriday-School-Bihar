@@ -9,7 +9,7 @@
   <link href="//fonts.googleapis.com/css?family=PT+Serif:400,700" rel="stylesheet">
   <link href="//fonts.googleapis.com/css?family=Raleway:200,300,400,500,600,700" rel="stylesheet">
   <link href="../css/bootstrap.css" rel="stylesheet">
-  <link href="admin.css" rel="stylesheet">
+  <link href="admin.css?v=2" rel="stylesheet">
 </head>
 <body class="vhs-admin">
 
@@ -79,6 +79,13 @@
           <div class="vhs-tile-desc">Open a page of the website and change any photo on it.</div>
         </div>
       </a>
+      <a class="vhs-tile" href="gallery.html">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="vhs-tile-icon"><rect x="2.5" y="6" width="13" height="11" rx="1"></rect><path d="M18 8.5h3.5v9H8"></path><circle cx="6.5" cy="10" r="1.4"></circle><path d="M2.5 15l3.5-3 3 2.5"></path></svg>
+        <div>
+          <div class="vhs-h-card vhs-tile-title">Photo gallery</div>
+          <div class="vhs-tile-desc">Add an event, change its photos, or take an event off the website.</div>
+        </div>
+      </a>
       <a class="vhs-tile" href="password.html">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="vhs-tile-icon"><rect x="4" y="10" width="16" height="10" rx="1"></rect><path d="M8 10V7a4 4 0 018 0v3"></path></svg>
         <div>
@@ -90,7 +97,7 @@
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="vhs-tile-icon"><circle cx="9" cy="8" r="3.2"></circle><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"></path><circle cx="17.5" cy="9.5" r="2.4"></circle><path d="M15 19c0-2.2 1.3-3.7 3-3.7 1.4 0 2.5 1 2.5 2.4"></path></svg>
         <div>
           <div class="vhs-h-card vhs-tile-title">People who can sign in</div>
-          <div class="vhs-tile-desc">Add or remove the people who may change the website.</div>
+          <div class="vhs-tile-desc">See who may change the website, and remove anyone who should not.</div>
         </div>
       </a>
       <a class="vhs-tile vhs-hidden" href="activity.html" id="tileActivity">
@@ -151,6 +158,6 @@
     }
     window.VHS_API_BASE = vhsResolveApiBase();
   </script>
-<script src="admin.js"></script>
+<script src="admin.js?v=2"></script>
 </body>
 </html>
