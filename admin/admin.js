@@ -212,6 +212,11 @@
     document.body.appendChild(backdrop);
     document.body.appendChild(dialog);
     if (buttonEls[0]) buttonEls[0].focus();
+
+    // Footer buttons already close themselves. A dialog whose body carries the
+    // real choices (the gallery's remove dialog) has to close itself from
+    // buildBody, so hand back a handle. Existing callers ignore it.
+    return { close: close };
   }
 
   // "1 photo" / "N photos" — same singular/plural pattern as pageSentence,
@@ -317,6 +322,25 @@
     // handler below and can surface "nothing to publish".
     btn.disabled = false;
 
+    /**
+     * The strip is fixed to the bottom, so the page must reserve exactly its
+     * height or the last row sits underneath it and cannot be clicked.
+     *
+     * Measured rather than hardcoded: the strip is 78px on a wide screen but
+     * stacks to about 140px below 768px, so a fixed 78px leaves the newest row
+     * unreachable on a phone. Re-measured on resize and orientation change.
+     */
+    function reserveRoomForStrip() {
+      var pageEl = stripEl.parentNode;
+      if (!pageEl || !pageEl.style) return;
+      var h = stripEl.getBoundingClientRect().height;
+      if (h > 0) pageEl.style.paddingBottom = Math.ceil(h) + 'px';
+    }
+
+    reserveRoomForStrip();
+    window.addEventListener('resize', reserveRoomForStrip);
+    window.addEventListener('orientationchange', reserveRoomForStrip);
+
     function render(count) {
       pendingCount = count;
       var pending = count > 0;
@@ -329,6 +353,9 @@
       // still surface the "nothing to publish" line, which a truly
       // disabled control could never receive a click for.
       btn.classList[pending ? 'remove' : 'add']('is-disabled');
+      // The sentence length decides how tall the strip wraps to on a narrow
+      // screen, so the room it needs is only known once the text is in.
+      reserveRoomForStrip();
     }
 
     function showNothingToPublish() {
