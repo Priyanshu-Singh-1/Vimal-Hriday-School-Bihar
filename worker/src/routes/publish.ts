@@ -32,11 +32,27 @@ export async function publishPending(
   const clean: string[] = [];
   const failed: string[] = [];
 
+  // Creating or deleting an event page is the only case where a dirty page is
+  // not simply "read it, render it, commit it".
+  const { results: opRows } = await env.DB.prepare(
+    'SELECT page_path, op, html FROM pending_page_ops',
+  ).all<{ page_path: string; op: 'create' | 'delete'; html: string | null }>();
+  const ops = new Map(opRows.map((r) => [r.page_path, r]));
+
   for (const path of dirty) {
     try {
-      const current = await gh.readFile(path);
+      const op = ops.get(path);
+
+      if (op?.op === 'delete') {
+        // A null content becomes a null-sha tree entry, which removes the file.
+        changes.push({ path, content: null });
+        continue;
+      }
+
+      // A page being created has no committed version to read.
+      const current = op?.op === 'create' && op.html !== null ? op.html : await gh.readFile(path);
       const rendered = await renderPage(env.DB, path, current, env.R2_PUBLIC_BASE);
-      if (rendered === current) clean.push(path);
+      if (rendered === current && op?.op !== 'create') clean.push(path);
       else changes.push({ path, content: rendered });
     } catch (err) {
       failed.push(path);
@@ -47,6 +63,7 @@ export async function publishPending(
   // Pages already matching need no commit; stop tracking them.
   for (const path of clean) {
     await env.DB.prepare('DELETE FROM pending_publish WHERE page_path = ?').bind(path).run();
+    await env.DB.prepare('DELETE FROM pending_page_ops WHERE page_path = ?').bind(path).run();
   }
 
   if (!changes.length) return { commit: null, pages: [], failed };
@@ -66,6 +83,7 @@ export async function publishPending(
 
   for (const c of changes) {
     await env.DB.prepare('DELETE FROM pending_publish WHERE page_path = ?').bind(c.path).run();
+    await env.DB.prepare('DELETE FROM pending_page_ops WHERE page_path = ?').bind(c.path).run();
   }
   await writeAudit(env.DB, actor, 'publish', commit ?? undefined, {
     pages: changes.map((c) => c.path),
