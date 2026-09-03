@@ -9,7 +9,11 @@ export class GitHubError extends Error {
   }
 }
 
-export type FileChange = { path: string; content: string };
+/**
+ * A file to write, or to delete when `content` is null. Deleting is needed to
+ * take an event page down permanently; every other caller passes a string.
+ */
+export type FileChange = { path: string; content: string | null };
 
 /** UTF-8 safe base64, since btoa alone mangles multi-byte characters. */
 function toBase64(text: string): string {
@@ -59,12 +63,15 @@ export function createGitHubClient(env: Env, fetchImpl: typeof fetch = fetch) {
       const headSha = ref.object.sha;
       const headCommit = await api<{ tree: { sha: string } }>(`${base}/git/commits/${headSha}`);
 
+      // A deletion carries no blob; its tree entry uses `sha: null` instead.
       const blobs = await Promise.all(
         files.map((f) =>
-          api<{ sha: string }>(`${base}/git/blobs`, 'POST', {
-            content: toBase64(f.content),
-            encoding: 'base64',
-          }),
+          f.content === null
+            ? Promise.resolve(null)
+            : api<{ sha: string }>(`${base}/git/blobs`, 'POST', {
+                content: toBase64(f.content),
+                encoding: 'base64',
+              }),
         ),
       );
 
@@ -74,7 +81,7 @@ export function createGitHubClient(env: Env, fetchImpl: typeof fetch = fetch) {
           path: f.path,
           mode: '100644',
           type: 'blob',
-          sha: blobs[i]!.sha,
+          sha: blobs[i] === null ? null : blobs[i]!.sha,
         })),
       });
 
