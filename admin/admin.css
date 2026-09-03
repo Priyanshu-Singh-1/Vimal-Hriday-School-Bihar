@@ -748,3 +748,145 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
   .vhs-people-header-row { display: none; }
   .vhs-people-row { grid-template-columns: 1fr; gap: 4px; }
 }
+
+/* ---------------------------------------------------------------------------
+   Gallery events (Phase 3)
+
+   Reuses .vhs-page-row / .vhs-panel / .vhs-btn* wherever the shape already
+   exists; the classes below only cover what the gallery adds -- a category
+   card, an event row's hidden state, and the photo grid.
+   --------------------------------------------------------------------------- */
+
+/* padding-bottom is set at runtime from the strip's measured height
+   (initStatusStrip), so it is correct on a phone as well as a wide screen. */
+.vhs-gallery-page { padding-bottom: 78px; }
+.vhs-gallery-body { box-sizing: border-box; max-width: 940px; padding: 32px 24px 0; }
+
+.vhs-gallery-heading { margin: 0 0 6px; }
+
+.vhs-gallery-intro {
+  color: var(--vhs-muted);
+  margin: 0 0 22px;
+}
+
+.vhs-gallery-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* A hidden event is dimmed rather than removed, so its row still reads as a
+   real event that simply is not on the website right now. */
+.vhs-event-row-hidden .vhs-page-thumb,
+.vhs-event-row-hidden .vhs-page-row-info { opacity: 0.55; }
+
+.vhs-event-row-buttons {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.vhs-badge-hidden {
+  background: #EEEEEE;
+  color: #555555;
+  border: 1px solid var(--vhs-border);
+}
+
+/* Photo grid on one event. Fixed-width tracks so a short last row stays
+   left-aligned instead of stretching. */
+.vhs-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 150px);
+  gap: 16px;
+  margin: 0 0 24px;
+}
+
+.vhs-photo-cell {
+  border: 1px solid var(--vhs-border);
+  border-radius: var(--vhs-radius);
+  background: var(--vhs-card);
+  padding: 8px;
+}
+
+.vhs-photo-cell img {
+  display: block;
+  width: 132px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 2px;
+  background: var(--vhs-page-bg);
+}
+
+.vhs-photo-cell-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.vhs-photo-count {
+  color: var(--vhs-muted);
+  margin: 0 0 16px;
+}
+
+/* Bulk add: a native file input plus a plain-text progress line. No spinner,
+   no animated bar -- the count is the progress. */
+.vhs-add-photos {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.vhs-add-photos-limit {
+  color: var(--vhs-muted);
+  margin: 8px 0 0;
+}
+
+.vhs-add-progress {
+  margin: 12px 0 0;
+  font-weight: 600;
+}
+
+.vhs-remove-choice {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--vhs-border);
+  border-radius: var(--vhs-radius);
+  background: var(--vhs-card);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--vhs-text);
+}
+
+.vhs-remove-choice:hover { background: var(--vhs-page-bg); }
+
+.vhs-remove-choice-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.vhs-remove-choice-desc {
+  color: var(--vhs-muted);
+  font-size: 15px;
+}
+
+.vhs-remove-choice[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.vhs-remove-choice[disabled]:hover { background: var(--vhs-card); }
+
+@media (max-width: 767px) {
+  .vhs-gallery-actions { flex-direction: column; align-items: stretch; }
+  .vhs-event-row-buttons { flex-wrap: wrap; }
+  .vhs-photo-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+  .vhs-photo-cell img { width: 100%; }
+}
+
+.vhs-add-photos-panel { padding: 20px; }
