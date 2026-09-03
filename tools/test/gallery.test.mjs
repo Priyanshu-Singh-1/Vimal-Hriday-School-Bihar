@@ -184,15 +184,31 @@ describe('planCategory against the live Celebrations page', () => {
       closeIndent: ' '.repeat(24),
     });
 
-  it('finds all five events, three shown and two hidden', () => {
-    const { events } = plan();
-    expect(events).toHaveLength(5);
-    expect(events.filter((e) => e.visible === 1)).toHaveLength(3);
-    expect(events.filter((e) => e.visible === 0)).toHaveLength(2);
+  // Asserted against the page's own content rather than a fixed count: events
+  // are created and hidden through the console, so the live file legitimately
+  // grows. An earlier version hardcoded five and broke the moment a real event
+  // was added.
+  it('finds the five events the page shipped with', () => {
+    const slugs = plan().events.map((e) => e.slug);
+    for (const original of [
+      'investitureceremony', 'independencecelebration24', 'teachersday2024',
+      'christmas2024', 'prizeDistribution24',
+    ]) {
+      expect(slugs).toContain(original);
+    }
   });
 
-  it('numbers positions from one in document order', () => {
-    expect(plan().events.map((e) => e.position)).toEqual([1, 2, 3, 4, 5]);
+  it('classifies each tile as shown or hidden with nothing left over', () => {
+    const { events } = plan();
+    const shown = events.filter((e) => e.visible === 1).length;
+    const hidden = events.filter((e) => e.visible === 0).length;
+    expect(shown + hidden).toBe(events.length);
+    expect(events.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('numbers positions from one, with no gaps or repeats', () => {
+    const positions = plan().events.map((e) => e.position);
+    expect(positions).toEqual(positions.map((_, i) => i + 1));
   });
 
   it('resolves every event to a page that exists in the repo', () => {
@@ -201,9 +217,15 @@ describe('planCategory against the live Celebrations page', () => {
     }
   });
 
-  it('marks no event as page_owned, since the console created none of them', () => {
-    expect(plan().events.every((e) => e.pagePath && true)).toBe(true);
-    expect(eventsSql(plan().events)).toContain(', 0)');
+  it('seeds every event with page_owned = 0, whoever created it', () => {
+    // The seeder only ever reads tiles off a page, so it can never claim
+    // ownership of a file; only the create route sets page_owned = 1.
+    const sql = eventsSql(plan().events);
+    const rows = sql.split('\n').filter((l) => l.trim().startsWith("('"));
+    expect(rows.length).toBe(plan().events.length);
+    // page_owned is the last column, so each row ends `, 0)` before its
+    // separator.
+    for (const row of rows) expect(row.trimEnd()).toMatch(/, 0\)[,;]$/);
   });
 
   it('reports a stray authoring comment on an unseeded page', () => {
