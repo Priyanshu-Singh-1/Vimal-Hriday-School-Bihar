@@ -56,6 +56,43 @@ describe('commitFiles', () => {
     '/git/refs/heads/main': () => json({ object: { sha: 'NEWCOMMIT' } }),
   });
 
+  it('deletes a file with a null-sha tree entry and no blob upload', async () => {
+    const f = mockFetch(happy());
+    const sha = await createGitHubClient(env, f).commitFiles(
+      [{ path: 'pages/events/gone.html', content: null }],
+      'remove event',
+    );
+    expect(sha).toBe('NEWCOMMIT');
+
+    const calls = (f as any).mock.calls.map((c: any[]) => String(c[0]));
+    expect(calls.some((u: string) => u.includes('/git/blobs'))).toBe(false);
+
+    const treeCall = (f as any).mock.calls.find((c: any[]) => String(c[0]).includes('/git/trees'));
+    expect(JSON.parse(treeCall[1].body).tree).toEqual([
+      { path: 'pages/events/gone.html', mode: '100644', type: 'blob', sha: null },
+    ]);
+  });
+
+  it('mixes a write and a delete in one commit', async () => {
+    const f = mockFetch(happy());
+    await createGitHubClient(env, f).commitFiles(
+      [
+        { path: 'pages/events/celebration.html', content: '<html>kept</html>' },
+        { path: 'pages/events/gone.html', content: null },
+      ],
+      'unlist and delete',
+    );
+
+    const blobCalls = (f as any).mock.calls.filter((c: any[]) => String(c[0]).includes('/git/blobs'));
+    expect(blobCalls).toHaveLength(1);
+
+    const treeCall = (f as any).mock.calls.find((c: any[]) => String(c[0]).includes('/git/trees'));
+    expect(JSON.parse(treeCall[1].body).tree).toEqual([
+      { path: 'pages/events/celebration.html', mode: '100644', type: 'blob', sha: 'BLOBSHA' },
+      { path: 'pages/events/gone.html', mode: '100644', type: 'blob', sha: null },
+    ]);
+  });
+
   it('creates one commit for several files and returns its sha', async () => {
     const f = mockFetch(happy());
     const sha = await createGitHubClient(env, f).commitFiles(
