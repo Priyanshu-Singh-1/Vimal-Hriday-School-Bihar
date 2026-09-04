@@ -23,8 +23,12 @@ auth.post('/login', async (c) => {
     return c.json({ error: 'invalid body' }, 400);
   }
 
+  // Scoped to the account as well as the address, so a proxied deployment
+  // cannot let one person's typo lock everyone out. An attacker on another
+  // address still cannot fill a real user's bucket from a different account.
   const ip = c.req.header('CF-Connecting-IP') ?? 'unknown';
-  const rate = await checkLoginRate(c.env.DB, ip);
+  const rateKey = `${ip}|${String(username ?? '').trim().toLowerCase()}`;
+  const rate = await checkLoginRate(c.env.DB, rateKey);
   if (!rate.allowed) {
     c.header('Retry-After', String(rate.retryAfterSeconds));
     return c.json({ error: 'too many attempts', retryAfterSeconds: rate.retryAfterSeconds }, 429);
@@ -47,7 +51,7 @@ auth.post('/login', async (c) => {
     : (await hashPassword(password), false);
 
   if (!row || !ok) {
-    await recordLoginFailure(c.env.DB, ip);
+    await recordLoginFailure(c.env.DB, rateKey);
     return c.json({ error: 'invalid credentials' }, 401);
   }
 
