@@ -12,9 +12,12 @@
   // `wrangler dev --remote` is unavailable) instead of only localhost/production.
   function vhsResolveApiBase() {
     var KEY = 'vhs_api_base';
+    // Away from localhost the api is same-origin: the host rewrites /v1/* to
+    // the Worker (see vercel.json). Kept in step with the same resolver inlined
+    // in each admin/*.html page.
     var deflt = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
       ? 'http://localhost:8787'
-      : 'https://api.vhspurnea.com';
+      : '';
     var m = /[?&]api=([^&]*)/.exec(location.search);
     var q = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : null;
     if (q !== null) {
@@ -32,7 +35,9 @@
     try { stored = localStorage.getItem(KEY); } catch (e) { stored = null; }
     return (stored && /^https?:\/\//.test(stored)) ? stored : deflt;
   }
-  var API = window.VHS_API_BASE || vhsResolveApiBase();
+  // Checked for being a string, not for truthiness: '' is a valid base meaning
+  // "same origin", and `||` would throw it away and re-resolve.
+  var API = typeof window.VHS_API_BASE === 'string' ? window.VHS_API_BASE : vhsResolveApiBase();
   var TOKEN_KEY = 'vhs_admin_token';
   var MAX_EDGE = 1920;
   var THUMB_EDGE = 400;
