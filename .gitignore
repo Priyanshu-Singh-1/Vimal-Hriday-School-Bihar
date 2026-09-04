@@ -1,6 +1,7 @@
 worker/.dev.vars
 worker/node_modules
-worker/.wrangler
+# matches at any depth: wrangler writes a cache wherever it is invoked from
+.wrangler/
 tools/node_modules
 tools/slots-map.json
 node_modules
