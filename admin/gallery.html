@@ -72,9 +72,14 @@
     // `wrangler dev --remote` is unavailable) instead of only localhost/production.
     function vhsResolveApiBase() {
       var KEY = 'vhs_api_base';
+      // Away from localhost the api is same-origin: the host rewrites /v1/* to
+      // the Worker (see vercel.json), so there is no cross-origin request and
+      // no origin to keep in ALLOWED_ORIGINS -- which matters because a Vercel
+      // preview url changes on every deploy. Use ?api=<url> to point a browser
+      // at a Worker directly when there is no such rewrite.
       var deflt = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
         ? 'http://localhost:8787'
-        : 'https://api.vhspurnea.com';
+        : '';
       var m = /[?&]api=([^&]*)/.exec(location.search);
       var q = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : null;
       if (q !== null) {
