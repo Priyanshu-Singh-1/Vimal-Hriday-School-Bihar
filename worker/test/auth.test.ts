@@ -88,12 +88,15 @@ describe('login', () => {
   });
 
   it('retryAfterSeconds counts down as the oldest attempt ages, rather than staying constant', async () => {
+    // Attempts are bucketed per address AND account (see rateKey in auth.ts),
+    // so the seeded rows must use the same composite key the route builds.
     const ip = '9.9.9.9';
+    const key = `${ip}|owner1`;
     await env.DB.prepare(
       `INSERT INTO login_attempts (ip, at) VALUES (?, datetime('now', '-5 minutes'))`,
-    ).bind(ip).run();
+    ).bind(key).run();
     for (let i = 0; i < 4; i++) {
-      await env.DB.prepare(`INSERT INTO login_attempts (ip, at) VALUES (?, datetime('now'))`).bind(ip).run();
+      await env.DB.prepare(`INSERT INTO login_attempts (ip, at) VALUES (?, datetime('now'))`).bind(key).run();
     }
     const first = await (await login('owner1', 'ownerpass', ip)).json<any>();
     expect(first.retryAfterSeconds).toBeLessThan(15 * 60);
@@ -101,9 +104,27 @@ describe('login', () => {
     await env.DB.prepare(
       `UPDATE login_attempts SET at = datetime('now', '-10 minutes')
        WHERE at = (SELECT MIN(at) FROM login_attempts WHERE ip = ?)`,
-    ).bind(ip).run();
+    ).bind(key).run();
     const second = await (await login('owner1', 'ownerpass', ip)).json<any>();
     expect(second.retryAfterSeconds).toBeLessThan(first.retryAfterSeconds);
+  });
+
+  it('one account being locked out does not lock out another on the same address', async () => {
+    // The case that matters once the console is served through a proxy: every
+    // request arrives from the same address, so bucketing on the address alone
+    // would let one person's typo lock out the whole school.
+    const ip = '10.10.10.10';
+    for (let i = 0; i < 5; i++) expect((await login('owner1', 'bad', ip)).status).toBe(401);
+    expect((await login('owner1', 'ownerpass', ip)).status).toBe(429);
+    // A different account from that same address is unaffected.
+    expect((await login('editor1', 'editorpass', ip)).status).toBe(200);
+  });
+
+  it('treats the username case-insensitively when bucketing', async () => {
+    const ip = '11.11.11.11';
+    for (let i = 0; i < 5; i++) expect((await login('OWNER1', 'bad', ip)).status).toBe(401);
+    // Same account, different capitalisation, so the same bucket.
+    expect((await login('owner1', 'ownerpass', ip)).status).toBe(429);
   });
 
   it('rejects a malformed body', async () => {
