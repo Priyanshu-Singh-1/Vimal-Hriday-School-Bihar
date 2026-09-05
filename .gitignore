@@ -1,0 +1,12 @@
+worker/.dev.vars
+worker/node_modules
+# matches at any depth: wrangler writes a cache wherever it is invoked from
+.wrangler/
+tools/node_modules
+tools/slots-map.json
+node_modules
+.idea/
+.superpowers/
+e2e/node_modules
+e2e/test-results
+e2e/playwright-report
