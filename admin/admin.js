@@ -236,7 +236,16 @@
     var joined = [];
     for (i = 0; i < pendingPages.length; i++) {
       var full = byPath[pendingPages[i].pagePath];
-      if (full) joined.push(full);
+      // A page with photo slots arrives with a thumbnail and a count. A gallery
+      // page has neither and is not in /v1/pages at all, so fall back to the
+      // name the server sent. Dropping it instead left the confirm dialog
+      // listing nothing for a gallery-only change.
+      joined.push(full || {
+        pagePath: pendingPages[i].pagePath,
+        label: pendingPages[i].label || pendingPages[i].pagePath,
+        thumbs: [],
+        unpublishedCount: 0
+      });
     }
     return joined;
   }
