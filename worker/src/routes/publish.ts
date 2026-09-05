@@ -3,6 +3,7 @@ import type { Env, SessionUser, Vars } from '../env';
 import { requireAuth } from '../lib/middleware';
 import { writeAudit } from '../lib/audit';
 import { renderPage } from '../render/page';
+import { pageLabel } from './pages';
 import { createGitHubClient, type FileChange } from '../github/client';
 
 const UNBOUND_TTL = '-1 day';
@@ -121,15 +122,47 @@ publish.get('/pending', async (c) => {
   const { results } = await c.env.DB.prepare(
     'SELECT page_path, marked_at, attempts, last_error FROM pending_publish ORDER BY page_path',
   ).all<{ page_path: string; marked_at: string; attempts: number; last_error: string | null }>();
-  return c.json({
-    count: results.length,
-    pages: results.map((r) => ({
+
+  /**
+   * A readable name for each pending page, resolved here rather than left to
+   * the console.
+   *
+   * The confirm dialog used to look each pending path up in /v1/pages, which
+   * lists only pages with photo slots. A gallery page is not in that list, so
+   * a gallery-only change produced a dialog headed "These pages will change
+   * for everyone who visits the website:" with nothing under it. Naming the
+   * page at the source means nothing can be silently dropped.
+   */
+  const label = async (pagePath: string): Promise<string> => {
+    const category = await c.env.DB.prepare(
+      'SELECT label FROM gallery_categories WHERE page_path = ?',
+    )
+      .bind(pagePath)
+      .first<{ label: string }>();
+    if (category) return category.label;
+
+    const event = await c.env.DB.prepare(
+      'SELECT title FROM gallery_events WHERE page_path = ? ORDER BY id LIMIT 1',
+    )
+      .bind(pagePath)
+      .first<{ title: string }>();
+    if (event) return event.title;
+
+    return pageLabel(pagePath);
+  };
+
+  const pages = [];
+  for (const r of results) {
+    pages.push({
       pagePath: r.page_path,
+      label: await label(r.page_path),
       markedAt: r.marked_at,
       attempts: r.attempts,
       lastError: r.last_error,
-    })),
-  });
+    });
+  }
+
+  return c.json({ count: results.length, pages });
 });
 
 publish.post('/', async (c) => {
