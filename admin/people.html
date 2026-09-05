@@ -4,6 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <!-- Every url on this page is relative, and the console is reached as a
+       directory. Whether the host leaves that as /admin/ or redirects it to
+       /admin (Vercel does the latter) changes what "admin.css" resolves to --
+       at /admin it becomes /admin.css and 404s, taking the stylesheet and
+       every script with it. Pinning the base makes resolution identical
+       either way, for links assigned from javascript too. Must stay above
+       the first href/src below. -->
+  <base href="/admin/">
   <title>People who can sign in — Vimal Hriday English Medium School</title>
   <link rel="icon" href="../resources/images/logo.png">
   <link href="//fonts.googleapis.com/css?family=PT+Serif:400,700" rel="stylesheet">
