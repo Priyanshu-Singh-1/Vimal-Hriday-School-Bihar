@@ -173,3 +173,60 @@ describe('publish routes', () => {
     expect((await exports.default.fetch('https://api.test/v1/publish', { method: 'POST' })).status).toBe(401);
   });
 });
+
+describe('GET /publish/pending labels each page', () => {
+  // The confirm dialog used to look each pending path up in /v1/pages, which
+  // lists only pages with photo slots -- so a gallery-only change produced a
+  // dialog with an empty list. The label now comes from the server.
+  const pending = async (t: string) =>
+    (await (await exports.default.fetch('https://api.test/v1/publish/pending', {
+      headers: { Authorization: `Bearer ${t}` },
+    })).json<any>()).pages;
+
+  beforeEach(async () => {
+    for (const tbl of ['gallery_photos', 'gallery_events']) {
+      await env.DB.prepare(`DELETE FROM ${tbl}`).run();
+    }
+  });
+
+  it('names a gallery category page by its part name', async () => {
+    await env.DB.prepare(
+      `INSERT INTO pending_publish (page_path) VALUES ('pages/events/celebration.html')`,
+    ).run();
+    const rows = await pending(await token());
+    expect(rows.find((r: any) => r.pagePath === 'pages/events/celebration.html').label).toBe('Celebrations');
+  });
+
+  it('names a gallery event page by its event title', async () => {
+    await env.DB.prepare(
+      `INSERT INTO gallery_events
+         (id, category, slug, title, page_path, href, cover_src, new_tab, visible, position,
+          indent, close_indent, page_owned, has_title_region)
+       VALUES (77,'celebrations','xmas','CHRISTMAS DAY (2024)','pages/events/christmas2024.html',
+               'christmas2024.html','c.jpg',1,1,1,'            ','        ',0,0)`,
+    ).run();
+    await env.DB.prepare(
+      `INSERT INTO pending_publish (page_path) VALUES ('pages/events/christmas2024.html')`,
+    ).run();
+    const rows = await pending(await token());
+    expect(rows.find((r: any) => r.pagePath === 'pages/events/christmas2024.html').label)
+      .toBe('CHRISTMAS DAY (2024)');
+  });
+
+  it('falls back to the friendly name for a slot page', async () => {
+    await env.DB.prepare(
+      `INSERT INTO pending_publish (page_path) VALUES ('pages/about/OurFounder.html')`,
+    ).run();
+    const rows = await pending(await token());
+    expect(rows.find((r: any) => r.pagePath === 'pages/about/OurFounder.html').label).toBe('Our Founder');
+  });
+
+  it('gives every pending page a non-empty label, so none can be dropped', async () => {
+    for (const path of ['pages/events/celebration.html', 'index.html', 't.html']) {
+      await env.DB.prepare('INSERT INTO pending_publish (page_path) VALUES (?)').bind(path).run();
+    }
+    const rows = await pending(await token());
+    expect(rows).toHaveLength(3);
+    for (const r of rows) expect(typeof r.label === 'string' && r.label.length > 0).toBe(true);
+  });
+});
