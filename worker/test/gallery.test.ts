@@ -286,6 +286,74 @@ describe('POST /events/:id/photos', () => {
   });
 });
 
+describe('tile picture', () => {
+  const seedAsset = async (key: string, sha: string) => {
+    await env.DB.prepare(
+      `INSERT INTO assets (r2_key, mime, sha256, origin, bound) VALUES (?, 'image/webp', ?, 'upload', 0)`,
+    ).bind(key, sha).run();
+    return key;
+  };
+
+  it('gives a new event its first photo as the tile picture', async () => {
+    // A created event has no cover; without this the category page rendered
+    // <img src=""> for it.
+    await env.DB.prepare("UPDATE gallery_events SET cover_src = '' WHERE id = 2").run();
+    const k = await seedAsset('up/aa/first.webp', 's-first');
+    await api(t, '/events/2/photos', { method: 'POST', body: JSON.stringify({ r2Keys: [k] }) });
+    const row = await env.DB.prepare('SELECT cover_src FROM gallery_events WHERE id = 2').first<any>();
+    expect(row.cover_src).toContain('up/aa/first.webp');
+    expect(row.cover_src).toMatch(/^https?:\/\//);
+  });
+
+  it('marks the category page dirty, since its tile changed', async () => {
+    await env.DB.prepare("UPDATE gallery_events SET cover_src = '' WHERE id = 2").run();
+    const k = await seedAsset('up/aa/first.webp', 's-first');
+    await api(t, '/events/2/photos', { method: 'POST', body: JSON.stringify({ r2Keys: [k] }) });
+    expect(await dirty()).toContain('pages/events/celebration.html');
+  });
+
+  it('never overwrites a tile picture that was chosen deliberately', async () => {
+    // The events that came with the site use a hand-picked photo that is not
+    // their first, and that choice has to survive.
+    const before = await env.DB.prepare('SELECT cover_src FROM gallery_events WHERE id = 1').first<any>();
+    const k = await seedAsset('up/bb/second.webp', 's-second');
+    await api(t, `/events/${eventId}/photos`, { method: 'POST', body: JSON.stringify({ r2Keys: [k] }) });
+    const after = await env.DB.prepare('SELECT cover_src FROM gallery_events WHERE id = 1').first<any>();
+    expect(after.cover_src).toBe(before.cover_src);
+  });
+
+  it('re-points the tile picture when the photo it showed is removed', async () => {
+    await env.DB.prepare("UPDATE gallery_events SET cover_src = '' WHERE id = 2").run();
+    const a = await seedAsset('up/aa/one.webp', 's-one');
+    const b = await seedAsset('up/bb/two.webp', 's-two');
+    await api(t, '/events/2/photos', { method: 'POST', body: JSON.stringify({ r2Keys: [a, b] }) });
+
+    const cover = (await env.DB.prepare('SELECT cover_src FROM gallery_events WHERE id = 2').first<any>()).cover_src;
+    expect(cover).toContain('up/aa/one.webp');
+
+    const first = await env.DB.prepare(
+      'SELECT id FROM gallery_photos WHERE event_id = 2 ORDER BY position LIMIT 1',
+    ).first<any>();
+    await api(t, `/events/2/photos/${first.id}`, { method: 'DELETE' });
+
+    const after = (await env.DB.prepare('SELECT cover_src FROM gallery_events WHERE id = 2').first<any>()).cover_src;
+    expect(after).toContain('up/bb/two.webp');
+  });
+
+  it('leaves the tile picture alone when some other photo is removed', async () => {
+    await env.DB.prepare("UPDATE gallery_events SET cover_src = '' WHERE id = 2").run();
+    const a = await seedAsset('up/aa/one.webp', 's-one');
+    const b = await seedAsset('up/bb/two.webp', 's-two');
+    await api(t, '/events/2/photos', { method: 'POST', body: JSON.stringify({ r2Keys: [a, b] }) });
+    const second = (await env.DB.prepare(
+      'SELECT id FROM gallery_photos WHERE event_id = 2 ORDER BY position DESC LIMIT 1',
+    ).first<any>());
+    await api(t, `/events/2/photos/${second.id}`, { method: 'DELETE' });
+    const after = (await env.DB.prepare('SELECT cover_src FROM gallery_events WHERE id = 2').first<any>()).cover_src;
+    expect(after).toContain('up/aa/one.webp');
+  });
+});
+
 describe('DELETE /events/:eventId/photos/:photoId', () => {
   it('removes one photo without renumbering the others', async () => {
     const before = await env.DB.prepare('SELECT id FROM gallery_photos WHERE event_id = ? ORDER BY position').bind(eventId).all<any>();
