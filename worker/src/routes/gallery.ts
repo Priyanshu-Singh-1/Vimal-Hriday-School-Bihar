@@ -345,15 +345,40 @@ gallery.delete('/events/:id', async (c) => {
 
   await c.env.DB.prepare('DELETE FROM gallery_events WHERE id = ?').bind(id).run();
   if (category) await markDirty(c.env.DB, category.page_path);
-  // Publishing turns a `deleted` row into a null-sha tree entry, which removes
-  // the file. Recorded separately from the tile change because the page is a
-  // second file in the same commit.
-  await c.env.DB.prepare(
-    `INSERT INTO pending_publish (page_path) VALUES (?)
-     ON CONFLICT(page_path) DO UPDATE SET marked_at = datetime('now')`,
-  )
+
+  /**
+   * Queue the page itself for removal.
+   *
+   * Marking it dirty is not enough: publish would read the file, find no event
+   * rows for it, conclude nothing had changed and leave it in place. The event
+   * vanished from the gallery while its page stayed on the site — reachable by
+   * anyone holding the link. Only a `delete` op becomes the null-sha tree
+   * entry that actually removes the file.
+   *
+   * A `create` op still present means the page was never published (publishing
+   * clears the op), so there is nothing on GitHub to remove and both rows are
+   * simply dropped.
+   */
+  const queued = await c.env.DB.prepare('SELECT op FROM pending_page_ops WHERE page_path = ?')
     .bind(event.page_path)
-    .run();
+    .first<{ op: string }>();
+
+  if (queued?.op === 'create') {
+    await c.env.DB.prepare('DELETE FROM pending_page_ops WHERE page_path = ?')
+      .bind(event.page_path)
+      .run();
+    await c.env.DB.prepare('DELETE FROM pending_publish WHERE page_path = ?')
+      .bind(event.page_path)
+      .run();
+  } else {
+    await c.env.DB.prepare(
+      `INSERT INTO pending_page_ops (page_path, op, html) VALUES (?, 'delete', NULL)
+       ON CONFLICT(page_path) DO UPDATE SET op = 'delete', html = NULL`,
+    )
+      .bind(event.page_path)
+      .run();
+    await markDirty(c.env.DB, event.page_path);
+  }
 
   await writeAudit(c.env.DB, c.var.user, 'gallery.event.delete', event.slug, {
     pagePath: event.page_path,
