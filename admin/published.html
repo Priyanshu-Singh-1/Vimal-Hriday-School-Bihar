@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <!-- Every url on this page is relative, and the console is reached as a
+       directory. Whether the host leaves that as /admin/ or redirects it to
+       /admin (Vercel does the latter) changes what "admin.css" resolves to --
+       at /admin it becomes /admin.css and 404s, taking the stylesheet and
+       every script with it. Pinning the base makes resolution identical
+       either way, for links assigned from javascript too. Must stay above
+       the first href/src below. -->
+  <base href="/admin/">
+  <title>Changes are on the website — Vimal Hriday English Medium School</title>
+  <link rel="icon" href="../resources/images/logo.png">
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:400,700" rel="stylesheet">
+  <link href="//fonts.googleapis.com/css?family=Raleway:200,300,400,500,600,700" rel="stylesheet">
+  <link href="../css/bootstrap.css" rel="stylesheet">
+  <link href="admin.css?v=2" rel="stylesheet">
+</head>
+<body class="vhs-admin">
+
+<div class="vhs-published-page" id="publishedPage">
+
+  <div class="vhs-header">
+    <div class="vhs-header-left">
+      <img class="vhs-header-logo" src="../resources/images/logo.png" alt="School logo">
+      <div class="vhs-header-title">Vimal Hriday School — website manager</div>
+    </div>
+    <div class="vhs-header-right">
+      <div class="vhs-header-user">Signed in as <b id="publishedUserName"></b></div>
+      <button class="vhs-btn vhs-btn-on-purple" type="button" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <div class="vhs-content vhs-published-body">
+    <div class="vhs-published-card">
+      <div class="vhs-published-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3c763d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-10"></path></svg>
+      </div>
+      <div class="vhs-h-success vhs-published-heading">Done. Your changes will show on the website in a minute or two.</div>
+      <div class="vhs-published-text">You do not need to do anything else. If you open the page and still see the old photo, wait a minute or two and refresh the page.</div>
+      <div class="vhs-published-actions">
+        <a class="vhs-btn vhs-btn-primary vhs-btn-lg" href="../index.html">Open the school website</a>
+        <a class="vhs-btn vhs-btn-secondary vhs-btn-lg" href="pages.html">Change more photos</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="vhs-status-strip" id="statusStrip">
+    <div class="vhs-status-strip-message">
+      <svg id="statusStripIconPending" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.8" stroke-linecap="round" class="vhs-hidden"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v.5M12 11.5V16"></path></svg>
+      <svg id="statusStripIconClean" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3c763d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="vhs-hidden"><path d="M5 13l4 4 10-10"></path></svg>
+      <div class="vhs-status-strip-text" id="statusStripText"></div>
+    </div>
+    <!-- README "07": this screen always shows the clean state, so
+         published.js calls VHS.initStatusStrip with forceClean rather than
+         waiting on GET /v1/publish/pending, which the publish cron may not
+         have caught up with yet. -->
+    <button class="vhs-status-strip-btn" type="button" id="statusStripBtn" disabled>Put my changes on the website</button>
+  </div>
+
+</div>
+
+<script>
+    // API base resolution order (highest priority first):
+    //   1. `?api=<url>` on this page's URL - persisted to localStorage (key vhs_api_base)
+    //      so it survives navigating to a page with no query string. `?api=` (empty) or
+    //      `?api=reset` clears a stored override.
+    //   2. A previously persisted localStorage override.
+    //   3. Hostname default: localhost/127.0.0.1 -> local `wrangler dev`, else production.
+    // Exists so a local browser can be pointed at a deployed Worker (e.g. when
+    // `wrangler dev --remote` is unavailable) instead of only localhost/production.
+    function vhsResolveApiBase() {
+      var KEY = 'vhs_api_base';
+      // Away from localhost the api is same-origin: the host rewrites /v1/* to
+      // the Worker (see vercel.json), so there is no cross-origin request and
+      // no origin to keep in ALLOWED_ORIGINS -- which matters because a Vercel
+      // preview url changes on every deploy. Use ?api=<url> to point a browser
+      // at a Worker directly when there is no such rewrite.
+      var deflt = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+        ? 'http://localhost:8787'
+        : '';
+      var m = /[?&]api=([^&]*)/.exec(location.search);
+      var q = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : null;
+      if (q !== null) {
+        if (q === '' || q === 'reset') {
+          try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+          return deflt;
+        }
+        if (/^https?:\/\//.test(q)) {
+          try { localStorage.setItem(KEY, q); } catch (e) { /* ignore */ }
+          return q;
+        }
+        // malformed value: ignore and fall through to a stored/default base
+      }
+      var stored = null;
+      try { stored = localStorage.getItem(KEY); } catch (e) { stored = null; }
+      return (stored && /^https?:\/\//.test(stored)) ? stored : deflt;
+    }
+    window.VHS_API_BASE = vhsResolveApiBase();
+  </script>
+<script src="admin.js?v=2"></script>
+<script src="published.js?v=2"></script>
+</body>
+</html>

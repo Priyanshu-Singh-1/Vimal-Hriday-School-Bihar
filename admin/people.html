@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <!-- Every url on this page is relative, and the console is reached as a
+       directory. Whether the host leaves that as /admin/ or redirects it to
+       /admin (Vercel does the latter) changes what "admin.css" resolves to --
+       at /admin it becomes /admin.css and 404s, taking the stylesheet and
+       every script with it. Pinning the base makes resolution identical
+       either way, for links assigned from javascript too. Must stay above
+       the first href/src below. -->
+  <base href="/admin/">
+  <title>People who can sign in — Vimal Hriday English Medium School</title>
+  <link rel="icon" href="../resources/images/logo.png">
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:400,700" rel="stylesheet">
+  <link href="//fonts.googleapis.com/css?family=Raleway:200,300,400,500,600,700" rel="stylesheet">
+  <link href="../css/bootstrap.css" rel="stylesheet">
+  <link href="admin.css?v=2" rel="stylesheet">
+</head>
+<body class="vhs-admin">
+
+<div class="vhs-people-page" id="peoplePage">
+
+  <div class="vhs-header">
+    <div class="vhs-header-left">
+      <img class="vhs-header-logo" src="../resources/images/logo.png" alt="School logo">
+      <div class="vhs-header-title">Vimal Hriday School — website manager</div>
+    </div>
+    <div class="vhs-header-right">
+      <div class="vhs-header-user">Signed in as <b id="peopleUserName"></b></div>
+      <button class="vhs-btn vhs-btn-on-purple" type="button" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <div class="vhs-content vhs-people-body">
+    <h1 class="vhs-h-screen vhs-people-heading">People who can sign in</h1>
+
+    <div class="vhs-alert vhs-alert-error vhs-people-alert vhs-hidden" id="peopleAlert" role="alert"></div>
+
+    <div class="vhs-hidden" id="peopleContent">
+      <div class="vhs-people-table">
+        <div class="vhs-people-header-row">
+          <div>Name</div>
+          <div>What they can do</div>
+          <div>Last signed in</div>
+          <div></div>
+        </div>
+        <div id="peopleRows"></div>
+      </div>
+      <!-- Account creation was deliberately removed from both the console and the
+           API (POST /v1/users returns 404); new accounts are provisioned from the
+           backend with tools/bin/create-user.mjs. This wording is the one already
+           approved and previously shipped in the console. -->
+      <div class="vhs-muted-text" id="peopleAddNote">New staff accounts are created by your developer on request.</div>
+    </div>
+  </div>
+
+  <div class="vhs-status-strip" id="statusStrip">
+    <div class="vhs-status-strip-message">
+      <svg id="statusStripIconPending" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.8" stroke-linecap="round" class="vhs-hidden"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v.5M12 11.5V16"></path></svg>
+      <svg id="statusStripIconClean" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3c763d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="vhs-hidden"><path d="M5 13l4 4 10-10"></path></svg>
+      <div class="vhs-status-strip-text" id="statusStripText"></div>
+    </div>
+    <button class="vhs-status-strip-btn" type="button" id="statusStripBtn" disabled>Put my changes on the website</button>
+  </div>
+
+</div>
+
+<script>
+    // API base resolution order (highest priority first):
+    //   1. `?api=<url>` on this page's URL - persisted to localStorage (key vhs_api_base)
+    //      so it survives navigating to a page with no query string. `?api=` (empty) or
+    //      `?api=reset` clears a stored override.
+    //   2. A previously persisted localStorage override.
+    //   3. Hostname default: localhost/127.0.0.1 -> local `wrangler dev`, else production.
+    // Exists so a local browser can be pointed at a deployed Worker (e.g. when
+    // `wrangler dev --remote` is unavailable) instead of only localhost/production.
+    function vhsResolveApiBase() {
+      var KEY = 'vhs_api_base';
+      // Away from localhost the api is same-origin: the host rewrites /v1/* to
+      // the Worker (see vercel.json), so there is no cross-origin request and
+      // no origin to keep in ALLOWED_ORIGINS -- which matters because a Vercel
+      // preview url changes on every deploy. Use ?api=<url> to point a browser
+      // at a Worker directly when there is no such rewrite.
+      var deflt = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+        ? 'http://localhost:8787'
+        : '';
+      var m = /[?&]api=([^&]*)/.exec(location.search);
+      var q = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : null;
+      if (q !== null) {
+        if (q === '' || q === 'reset') {
+          try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+          return deflt;
+        }
+        if (/^https?:\/\//.test(q)) {
+          try { localStorage.setItem(KEY, q); } catch (e) { /* ignore */ }
+          return q;
+        }
+        // malformed value: ignore and fall through to a stored/default base
+      }
+      var stored = null;
+      try { stored = localStorage.getItem(KEY); } catch (e) { stored = null; }
+      return (stored && /^https?:\/\//.test(stored)) ? stored : deflt;
+    }
+    window.VHS_API_BASE = vhsResolveApiBase();
+  </script>
+<script src="admin.js?v=2"></script>
+<script src="people.js?v=2"></script>
+</body>
+</html>

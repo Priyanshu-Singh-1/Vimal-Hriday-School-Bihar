@@ -328,7 +328,7 @@
                                         
                                         <!-- Paragraph message of the Principal Greetings -->
                                         <div class="agileits_banner_bottom">
-                                                <img src="resources/noncurricular/classMonitor/cm_30.jpg" width="50%" class="img-rounded img-borderd" style="border: 2px solid Black; margin-left: 1em;"/>
+                                                <!--vhs:begin index.img.1--><img data-vhs-slot="index.img.1" src="resources/noncurricular/classMonitor/cm_30.jpg" width="50%" class="img-rounded img-borderd" style="border: 2px solid Black; margin-left: 1em;"/><!--vhs:end index.img.1-->
                                                 <p style="text-align:justify;">Greetings to Our Extended Family: Step into Our Virtual School Tour!<br>
                                                         <img src="resources/images/start.gif" alt="star GIF" style="height: 25px;">
                                                         “Trust in the Lord, have faith, do not despair.” <b>[Psalms 27:14]</b>
@@ -421,20 +421,20 @@
                         
                                         <div class="popular-grids">
                                                 <div class="col-md-3 popular-grid">
-                                                        <img src="resources/noncurricular/planting/p_1.jpg" class="img-responsive" alt=""/>
+                                                        <!--vhs:begin index.img.2--><img data-vhs-slot="index.img.2" src="resources/noncurricular/planting/p_1.jpg" class="img-responsive" alt=""/><!--vhs:end index.img.2-->
                                                         
                                                 </div>
                         
                                                 <div class="col-md-3 popular-grid">
-                                                        <img src="resources/noncurricular/srDonnaMaryVisit/dm_10.jpg" class="img-responsive" alt=""/>
+                                                        <!--vhs:begin index.img.3--><img data-vhs-slot="index.img.3" src="resources/noncurricular/srDonnaMaryVisit/dm_10.jpg" class="img-responsive" alt=""/><!--vhs:end index.img.3-->
                                                         
                                                 </div>
                                                 <div class="col-md-3 popular-grid">
-                                                        <img src="resources/noncurricular/investiture/investiture2025/inv_6.jpg" class="img-responsive" alt=""/>
+                                                        <!--vhs:begin index.img.4--><img data-vhs-slot="index.img.4" src="resources/noncurricular/investiture/investiture2025/inv_6.jpg" class="img-responsive" alt=""/><!--vhs:end index.img.4-->
                                                         
                                                 </div>
                                                 <div class="col-md-3 popular-grid">
-                                                        <img src="resources/noncurricular/election/el_16.jpg" class="img-responsive" alt=""/>
+                                                        <!--vhs:begin index.img.5--><img data-vhs-slot="index.img.5" src="resources/noncurricular/election/el_16.jpg" class="img-responsive" alt=""/><!--vhs:end index.img.5-->
                                                         
                                                 </div>
                                                 
@@ -464,7 +464,7 @@
                                                                 </div>
                                                         </div>
                                                         <div class="col-md-4 team-left">
-                                                                <img class="img-responsive" src="resources/management/1.jpeg" alt=" " />
+                                                                <!--vhs:begin index.img.6--><img data-vhs-slot="index.img.6" class="img-responsive" src="resources/management/1.jpeg" alt=" " /><!--vhs:end index.img.6-->
                                                         </div>
                                                         <div class="clearfix"></div>
                                                 </div>
@@ -508,7 +508,7 @@
                                                                 </div>
                                                         </div>
                                                         <div class="col-md-4 team-left">
-                                                                <img class="img-responsive" src="resources/images/time@2x.png" alt=" " />
+                                                                <!--vhs:begin index.img.7--><img data-vhs-slot="index.img.7" class="img-responsive" src="resources/images/time@2x.png" alt=" " /><!--vhs:end index.img.7-->
                                                         </div>
                                                         <div class="clearfix"></div>
                                                 </div>
@@ -586,6 +586,19 @@
 
         </div>
         </form>
+
+<!-- vhs-admin-boot: injects the editor only for a signed-in admin; a visitor downloads nothing more -->
+<script>
+(function(){
+  try {
+    if (!sessionStorage.getItem('vhs_admin_token')) return;
+    var s = document.createElement('script');
+    s.src = './js/admin/editor.v1.js?v=2';
+    s.defer = true;
+    document.body.appendChild(s);
+  } catch (e) {}
+})();
+</script>
 </body>
 
         <!-- js -->

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <!-- Every url on this page is relative, and the console is reached as a
+       directory. Whether the host leaves that as /admin/ or redirects it to
+       /admin (Vercel does the latter) changes what "admin.css" resolves to --
+       at /admin it becomes /admin.css and 404s, taking the stylesheet and
+       every script with it. Pinning the base makes resolution identical
+       either way, for links assigned from javascript too. Must stay above
+       the first href/src below. -->
+  <base href="/admin/">
+  <title>Sign in — Vimal Hriday English Medium School</title>
+  <link rel="icon" href="../resources/images/logo.png">
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:400,700" rel="stylesheet">
+  <link href="//fonts.googleapis.com/css?family=Raleway:200,300,400,500,600,700" rel="stylesheet">
+  <link href="../css/bootstrap.css" rel="stylesheet">
+  <link href="admin.css?v=2" rel="stylesheet">
+</head>
+<body class="vhs-admin">
+
+<div class="vhs-signin-page" id="signinPage">
+  <div class="vhs-signin-card" id="signinCard">
+
+    <div class="vhs-signin-header">
+      <img class="vhs-signin-logo" src="../resources/images/logo.png" alt="School logo">
+      <h1 class="vhs-signin-title">Sign in to manage the school website</h1>
+      <div class="vhs-signin-subtitle">Vimal Hriday English Medium School, Purnea</div>
+    </div>
+
+    <div class="vhs-alert vhs-alert-error vhs-signin-alert vhs-hidden" id="signinAlert" role="alert"></div>
+
+    <form id="signinForm">
+      <div class="vhs-signin-fields" id="signinFields">
+        <div class="vhs-field">
+          <label class="vhs-label" for="signinUsername">Username</label>
+          <input class="vhs-input" type="text" id="signinUsername" name="username"
+                 autocomplete="username" required>
+        </div>
+        <div class="vhs-field">
+          <label class="vhs-label" for="signinPassword">Password</label>
+          <input class="vhs-input" type="password" id="signinPassword" name="password"
+                 autocomplete="current-password" required>
+        </div>
+        <button class="vhs-btn vhs-btn-primary vhs-btn-lg vhs-btn-block" type="submit" id="signinSubmit">Sign in</button>
+      </div>
+    </form>
+
+    <div class="vhs-signin-forgot vhs-hidden" id="signinForgot">If you have forgotten your password, please ask the Principal's office.</div>
+
+  </div>
+</div>
+
+<div class="vhs-home-page vhs-hidden" id="homeView">
+
+  <div class="vhs-header">
+    <div class="vhs-header-left">
+      <img class="vhs-header-logo" src="../resources/images/logo.png" alt="School logo">
+      <div class="vhs-header-title">
+        <!-- README "11" (Mobile, 390x844): the header carries the short
+             "Website manager" title below 768px instead of the full desktop
+             title. Both strings are always in the DOM; admin.css alone
+             decides which one is visible, so no script needs to rewrite
+             text per breakpoint (see admin.css's mobile block, and the
+             matching carve-out in the coding contract for this screen). -->
+        <span class="vhs-header-title-full">Vimal Hriday School — website manager</span>
+        <span class="vhs-header-title-short">Website manager</span>
+      </div>
+    </div>
+    <div class="vhs-header-right">
+      <div class="vhs-header-user">Signed in as <b id="homeUserName"></b></div>
+      <button class="vhs-btn vhs-btn-on-purple" type="button" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+
+  <div class="vhs-content vhs-home-body">
+    <h1 class="vhs-h-screen vhs-home-heading">What do you want to do?</h1>
+    <div class="vhs-muted-text vhs-home-reassurance">Nothing you do here shows on the website until you press the green button at the bottom.</div>
+
+    <div class="vhs-tile-grid" id="homeTileGrid">
+      <a class="vhs-tile" href="pages.html">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="vhs-tile-icon"><rect x="3" y="4" width="18" height="16" rx="1"></rect><circle cx="8.5" cy="9.5" r="1.8"></circle><path d="M3 17l5-4 4 3 3-2 6 4"></path></svg>
+        <div>
+          <div class="vhs-h-card vhs-tile-title">Change photos on a page</div>
+          <div class="vhs-tile-desc">Open a page of the website and change any photo on it.</div>
+        </div>
+      </a>
+      <a class="vhs-tile" href="gallery.html">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="vhs-tile-icon"><rect x="2.5" y="6" width="13" height="11" rx="1"></rect><path d="M18 8.5h3.5v9H8"></path><circle cx="6.5" cy="10" r="1.4"></circle><path d="M2.5 15l3.5-3 3 2.5"></path></svg>
+        <div>
+          <div class="vhs-h-card vhs-tile-title">Photo gallery</div>
+          <div class="vhs-tile-desc">Add an event, change its photos, or take an event off the website.</div>
+        </div>
+      </a>
+      <a class="vhs-tile" href="password.html">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="vhs-tile-icon"><rect x="4" y="10" width="16" height="10" rx="1"></rect><path d="M8 10V7a4 4 0 018 0v3"></path></svg>
+        <div>
+          <div class="vhs-h-card vhs-tile-title">Change my password</div>
+          <div class="vhs-tile-desc">Pick a new password for your own sign in.</div>
+        </div>
+      </a>
+      <a class="vhs-tile vhs-hidden" href="people.html" id="tilePeople">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="vhs-tile-icon"><circle cx="9" cy="8" r="3.2"></circle><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"></path><circle cx="17.5" cy="9.5" r="2.4"></circle><path d="M15 19c0-2.2 1.3-3.7 3-3.7 1.4 0 2.5 1 2.5 2.4"></path></svg>
+        <div>
+          <div class="vhs-h-card vhs-tile-title">People who can sign in</div>
+          <div class="vhs-tile-desc">See who may change the website, and remove anyone who should not.</div>
+        </div>
+      </a>
+      <a class="vhs-tile vhs-hidden" href="activity.html" id="tileActivity">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="vhs-tile-icon"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7.5V12l3 2"></path></svg>
+        <div>
+          <div class="vhs-h-card vhs-tile-title">What changed recently</div>
+          <div class="vhs-tile-desc">See the photos that were changed, and who changed them.</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="vhs-status-strip" id="statusStrip">
+    <div class="vhs-status-strip-message">
+      <svg id="statusStripIconPending" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#614BC3" stroke-width="1.8" stroke-linecap="round" class="vhs-hidden"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v.5M12 11.5V16"></path></svg>
+      <svg id="statusStripIconClean" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3c763d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="vhs-hidden"><path d="M5 13l4 4 10-10"></path></svg>
+      <div class="vhs-status-strip-text" id="statusStripText"></div>
+    </div>
+    <!-- Screen 06 (publish confirmation modal) does not exist yet. This
+         button must open that modal before publishing, never publish
+         directly — replace this seam with the real modal call once 06
+         lands. -->
+    <button class="vhs-status-strip-btn" type="button" id="statusStripBtn" disabled>Put my changes on the website</button>
+  </div>
+
+</div>
+
+<script>
+    // API base resolution order (highest priority first):
+    //   1. `?api=<url>` on this page's URL - persisted to localStorage (key vhs_api_base)
+    //      so it survives navigating to a page with no query string. `?api=` (empty) or
+    //      `?api=reset` clears a stored override.
+    //   2. A previously persisted localStorage override.
+    //   3. Hostname default: localhost/127.0.0.1 -> local `wrangler dev`, else production.
+    // Exists so a local browser can be pointed at a deployed Worker (e.g. when
+    // `wrangler dev --remote` is unavailable) instead of only localhost/production.
+    function vhsResolveApiBase() {
+      var KEY = 'vhs_api_base';
+      // Away from localhost the api is same-origin: the host rewrites /v1/* to
+      // the Worker (see vercel.json), so there is no cross-origin request and
+      // no origin to keep in ALLOWED_ORIGINS -- which matters because a Vercel
+      // preview url changes on every deploy. Use ?api=<url> to point a browser
+      // at a Worker directly when there is no such rewrite.
+      var deflt = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
+        ? 'http://localhost:8787'
+        : '';
+      var m = /[?&]api=([^&]*)/.exec(location.search);
+      var q = m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : null;
+      if (q !== null) {
+        if (q === '' || q === 'reset') {
+          try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+          return deflt;
+        }
+        if (/^https?:\/\//.test(q)) {
+          try { localStorage.setItem(KEY, q); } catch (e) { /* ignore */ }
+          return q;
+        }
+        // malformed value: ignore and fall through to a stored/default base
+      }
+      var stored = null;
+      try { stored = localStorage.getItem(KEY); } catch (e) { stored = null; }
+      return (stored && /^https?:\/\//.test(stored)) ? stored : deflt;
+    }
+    window.VHS_API_BASE = vhsResolveApiBase();
+  </script>
+<script src="admin.js?v=2"></script>
+</body>
+</html>

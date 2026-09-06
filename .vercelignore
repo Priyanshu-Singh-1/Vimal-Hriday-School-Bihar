@@ -1,0 +1,16 @@
+# Everything here is repository tooling, not part of the website. Vercel serves
+# the repo root as-is, so without this the Worker source, the migration scripts
+# and the test suites would all be published as readable files on the public
+# site -- handing a reader a map of the api for no benefit.
+#
+# No served page references any of these paths (checked before adding).
+worker/
+tools/
+e2e/
+docs/
+design_handoff_admin_console/
+.vscode/
+.wrangler/
+
+# Working files that are not part of the site.
+UXBug.png

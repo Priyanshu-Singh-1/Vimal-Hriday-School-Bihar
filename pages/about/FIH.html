@@ -257,18 +257,18 @@
                                         <div class="first_row" style="display: flex; justify-content: space-evenly;">
                                         
                                                 <div class="image_wrapper" style="display: inline-block; justify-content: center; align-items: center; padding: 12px;">
-                                                        <img src="../../resources/FIH/fih1.jpg" width="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                        <!--vhs:begin fih.img.1--><img data-vhs-slot="fih.img.1" src="../../resources/FIH/fih1.jpg" width="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end fih.img.1-->
                                                         <p style="font-weight: bolder;">[ FIH Congregation ]</p>
                                                 </div>
                                                 
                                         </div>
                                         <div class="first_row" style="display: flex; justify-content: space-evenly;">
                                                 <div class="image_wrapper" style=" display: inline-block; justify-content: center; align-items: center; padding: 12px;">
-                                                        <img src="../../resources/FIH/fih2.jpg" width="60%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                        <!--vhs:begin fih.img.2--><img data-vhs-slot="fih.img.2" src="../../resources/FIH/fih2.jpg" width="60%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end fih.img.2-->
                                                         <p style="">Mother Mary</p>
                                                 </div>
                                                 <div class="image_wrapper" style=" display: inline-block; justify-content: center; align-items: center; padding: 12px;">
-                                                        <img src="../../resources/FIH/fih3.jpg" width="100%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/>
+                                                        <!--vhs:begin fih.img.3--><img data-vhs-slot="fih.img.3" src="../../resources/FIH/fih3.jpg" width="100%" height="60%" class="img-rounded img-borderd" style="border: 2px solid Black;"/><!--vhs:end fih.img.3-->
                                                         <p style="">St. Francis of Assisi</p>
                                                         <!-- <p style="font-weight: bolder;">[ Provincial of FIH Delhi Province ]</p> -->
                                                 </div>
@@ -398,6 +398,19 @@
 
         </div>
         </form>
+
+<!-- vhs-admin-boot: injects the editor only for a signed-in admin; a visitor downloads nothing more -->
+<script>
+(function(){
+  try {
+    if (!sessionStorage.getItem('vhs_admin_token')) return;
+    var s = document.createElement('script');
+    s.src = '../../js/admin/editor.v1.js?v=2';
+    s.defer = true;
+    document.body.appendChild(s);
+  } catch (e) {}
+})();
+</script>
 </body>
 
         <!-- js -->

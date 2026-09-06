@@ -1,0 +1,2 @@
+JWT_SECRET=generate-with-openssl-rand-base64-32
+GITHUB_TOKEN=github_pat_fine_grained_contents_write_on_this_repo_only
