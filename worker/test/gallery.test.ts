@@ -170,6 +170,51 @@ describe('DELETE /events/:id', () => {
     expect(await dirty()).toContain('pages/events/christmas2024.html');
   });
 
+  it('records a delete op, without which the file is never removed', async () => {
+    // Marking the page dirty alone made publish read it, decide nothing had
+    // changed and leave it on the site. Only the op removes the file.
+    await env.DB.prepare('UPDATE gallery_events SET page_owned = 1 WHERE id = ?').bind(eventId).run();
+    await api(t, `/events/${eventId}?mode=delete`, { method: 'DELETE' });
+    const op = await env.DB.prepare('SELECT op, html FROM pending_page_ops WHERE page_path = ?')
+      .bind('pages/events/christmas2024.html').first<any>();
+    expect(op).toMatchObject({ op: 'delete', html: null });
+  });
+
+  it('replaces a queued create with a delete', async () => {
+    await env.DB.prepare('UPDATE gallery_events SET page_owned = 1 WHERE id = ?').bind(eventId).run();
+    // Simulate a page created and already published, then queued again.
+    await env.DB.prepare(
+      `INSERT INTO pending_page_ops (page_path, op, html) VALUES ('pages/events/christmas2024.html','delete',NULL)`,
+    ).run();
+    await api(t, `/events/${eventId}?mode=delete`, { method: 'DELETE' });
+    const op = await env.DB.prepare('SELECT op FROM pending_page_ops WHERE page_path = ?')
+      .bind('pages/events/christmas2024.html').first<any>();
+    expect(op.op).toBe('delete');
+  });
+
+  it('drops an unpublished page instead of queueing a delete for a file that is not there', async () => {
+    await env.DB.prepare('UPDATE gallery_events SET page_owned = 1 WHERE id = ?').bind(eventId).run();
+    // A create op still present means publish never ran, so nothing is on GitHub.
+    await env.DB.prepare(
+      `INSERT INTO pending_page_ops (page_path, op, html)
+       VALUES ('pages/events/christmas2024.html','create','<html></html>')`,
+    ).run();
+    await api(t, `/events/${eventId}?mode=delete`, { method: 'DELETE' });
+    expect(
+      await env.DB.prepare('SELECT op FROM pending_page_ops WHERE page_path = ?')
+        .bind('pages/events/christmas2024.html').first(),
+    ).toBeNull();
+    expect(await dirty()).not.toContain('pages/events/christmas2024.html');
+  });
+
+  it('hiding queues no file removal', async () => {
+    await api(t, `/events/${eventId}`, { method: 'DELETE' });
+    expect(
+      await env.DB.prepare('SELECT op FROM pending_page_ops WHERE page_path = ?')
+        .bind('pages/events/christmas2024.html').first(),
+    ).toBeNull();
+  });
+
   it('cascades photos away with the event', async () => {
     await env.DB.prepare('UPDATE gallery_events SET page_owned = 1 WHERE id = ?').bind(eventId).run();
     await api(t, `/events/${eventId}?mode=delete`, { method: 'DELETE' });

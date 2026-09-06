@@ -230,3 +230,60 @@ describe('GET /publish/pending labels each page', () => {
     for (const r of rows) expect(typeof r.label === 'string' && r.label.length > 0).toBe(true);
   });
 });
+
+describe('publishing a deleted event page', () => {
+  // The chain that broke in production: the delete route records the op, and
+  // publish must turn it into a tree entry with a null sha. Each half was
+  // tested; the join was not, so a missing op row meant the page silently
+  // stayed on the site.
+  it('removes the file with a null-sha tree entry', async () => {
+    await env.DB.prepare(
+      `INSERT INTO pending_page_ops (page_path, op, html) VALUES ('pages/events/gone.html','delete',NULL)`,
+    ).run();
+    await env.DB.prepare(
+      `INSERT INTO pending_publish (page_path) VALUES ('pages/events/gone.html')`,
+    ).run();
+
+    const { impl, calls } = ghMock();
+    const out = await publishPending(env as any, null, impl);
+    expect(out.commit).toBe('COMMIT');
+    expect(out.pages).toContain('pages/events/gone.html');
+
+    // No blob is uploaded for a deletion...
+    expect(calls.filter((c) => c.url.includes('/git/blobs'))).toHaveLength(0);
+    // ...and the tree entry carries sha: null, which is how git removes a file.
+    const tree = calls.find((c) => c.url.includes('/git/trees'));
+    expect(JSON.parse(tree.init.body).tree).toEqual([
+      { path: 'pages/events/gone.html', mode: '100644', type: 'blob', sha: null },
+    ]);
+  });
+
+  it('clears the op afterwards so it cannot be deleted twice', async () => {
+    await env.DB.prepare(
+      `INSERT INTO pending_page_ops (page_path, op, html) VALUES ('pages/events/gone.html','delete',NULL)`,
+    ).run();
+    await env.DB.prepare(
+      `INSERT INTO pending_publish (page_path) VALUES ('pages/events/gone.html')`,
+    ).run();
+    const { impl } = ghMock();
+    await publishPending(env as any, null, impl);
+    expect(
+      await env.DB.prepare("SELECT op FROM pending_page_ops WHERE page_path = 'pages/events/gone.html'").first(),
+    ).toBeNull();
+    expect(
+      await env.DB.prepare("SELECT page_path FROM pending_publish WHERE page_path = 'pages/events/gone.html'").first(),
+    ).toBeNull();
+  });
+
+  it('never reads the file it is about to delete', async () => {
+    await env.DB.prepare(
+      `INSERT INTO pending_page_ops (page_path, op, html) VALUES ('pages/events/gone.html','delete',NULL)`,
+    ).run();
+    await env.DB.prepare(
+      `INSERT INTO pending_publish (page_path) VALUES ('pages/events/gone.html')`,
+    ).run();
+    const { impl, calls } = ghMock();
+    await publishPending(env as any, null, impl);
+    expect(calls.filter((c) => c.url.includes('/contents/gone.html'))).toHaveLength(0);
+  });
+});
