@@ -404,14 +404,33 @@
 
     // README "07": that screen always asserts the clean state immediately
     // instead of asking the server, per the seam comment above.
-    if (ids.forceClean) {
-      render(0);
-    } else {
+    /**
+     * Re-read how many pages are waiting to be published.
+     *
+     * Called once on load, and again by any screen that changes something.
+     * Without that second call the strip only ever showed the count from page
+     * load: adding a photo or hiding an event marked the page dirty on the
+     * server while the strip still read "Everything is on the website", and
+     * the publish button — which short-circuits on a zero count — answered
+     * "There is nothing new to put on the website" instead of opening the
+     * confirm dialog.
+     */
+    function refresh() {
+      if (ids.forceClean) { render(0); return; }
       fetch(API + '/v1/publish/pending', { headers: authHeaders() }).then(function (res) {
         if (res.status === 401) { showSessionExpired(); return; }
         return res.json().then(function (body) { render(body.count); });
       }).catch(function () { /* offline: leave the last-known strip state on screen */ });
     }
+
+    refresh();
+
+    // Exposed so a screen can say "I changed something" without knowing how
+    // the strip works. Assigned here rather than in the window.VHS literal
+    // because it closes over this strip's own elements.
+    window.VHS.refreshStatusStrip = refresh;
+
+    return { refresh: refresh };
   }
 
   window.VHS = {
