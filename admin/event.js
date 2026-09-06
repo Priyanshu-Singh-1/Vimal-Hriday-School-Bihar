@@ -111,6 +111,8 @@
             return;
           }
           load();
+          // Removing a photo queues this event's page, so the strip must say so.
+          if (VHS.refreshStatusStrip) VHS.refreshStatusStrip();
         });
       })
       .catch(function () {
@@ -210,6 +212,7 @@
           }
           inputEl.value = '';
           load();
+          if (VHS.refreshStatusStrip) VHS.refreshStatusStrip();
         });
       });
     }

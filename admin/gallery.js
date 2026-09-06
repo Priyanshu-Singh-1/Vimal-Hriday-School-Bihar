@@ -201,7 +201,12 @@
         });
       })
       .then(function (ok) {
-        if (ok) loadEvents();
+        if (!ok) return;
+        loadEvents();
+        // Creating, renaming, hiding, showing, reordering or deleting an event
+        // all queue a page for publishing, so the strip has to be re-read or it
+        // keeps claiming everything is already on the website.
+        if (VHS.refreshStatusStrip) VHS.refreshStatusStrip();
       })
       .catch(function () {
         showError('The website could not be reached. Please try again.');
