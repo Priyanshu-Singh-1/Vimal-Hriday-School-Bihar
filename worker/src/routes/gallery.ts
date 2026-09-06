@@ -64,6 +64,43 @@ const shapeEvent = (row: EventRow, photos: number) => ({
   photoCount: photos,
 });
 
+/**
+ * Give an event a tile picture if it has none.
+ *
+ * A created event starts with an empty `cover_src`, because it has no photos
+ * yet. Nothing used to fill it in, so once photos were added the tile on the
+ * category page still rendered `<img src="">` — a broken image on the public
+ * site. The first photo becomes the cover.
+ *
+ * Only ever fills an empty cover: the events that came with the site have a
+ * hand-picked tile picture that is deliberately not their first photo, and
+ * that choice must survive.
+ */
+async function adoptCover(
+  env: Env,
+  event: { id: number; category: string; cover_src: string },
+): Promise<void> {
+  if (event.cover_src) return;
+
+  const first = await env.DB.prepare(
+    'SELECT src, r2_key FROM gallery_photos WHERE event_id = ? ORDER BY position, id LIMIT 1',
+  )
+    .bind(event.id)
+    .first<{ src: string; r2_key: string | null }>();
+  if (!first) return;
+
+  // An absolute url, because the same value is shown both on the category page
+  // and in the console, which sit at different depths.
+  await env.DB.prepare('UPDATE gallery_events SET cover_src = ? WHERE id = ?')
+    .bind(photoSrc(first, env.R2_PUBLIC_BASE), event.id)
+    .run();
+
+  const category = await env.DB.prepare('SELECT page_path FROM gallery_categories WHERE id = ?')
+    .bind(event.category)
+    .first<{ page_path: string }>();
+  if (category) await markDirty(env.DB, category.page_path);
+}
+
 /** Categories, with how many events each holds. */
 gallery.get('/categories', async (c) => {
   const { results } = await c.env.DB.prepare(
@@ -483,6 +520,7 @@ gallery.post('/events/:id/photos', async (c) => {
   }
 
   await markDirty(c.env.DB, event.page_path);
+  await adoptCover(c.env, event);
   await writeAudit(c.env.DB, c.var.user, 'gallery.photo.add', event.slug, {
     count: keys.length,
     pagePath: event.page_path,
@@ -503,11 +541,12 @@ gallery.delete('/events/:eventId/photos/:photoId', async (c) => {
 
   if (event.photos_managed !== 1) return c.json({ error: UNMANAGED }, 409);
 
+  // `src` is selected too, so the cover can be compared against this photo.
   const photo = await c.env.DB.prepare(
-    'SELECT id, r2_key FROM gallery_photos WHERE id = ? AND event_id = ?',
+    'SELECT id, src, r2_key FROM gallery_photos WHERE id = ? AND event_id = ?',
   )
     .bind(photoId, eventId)
-    .first<{ id: number; r2_key: string | null }>();
+    .first<{ id: number; src: string; r2_key: string | null }>();
   if (!photo) return c.json({ error: 'not found' }, 404);
 
   const remaining = await c.env.DB.prepare(
@@ -542,6 +581,11 @@ gallery.delete('/events/:eventId/photos/:photoId', async (c) => {
   }
 
   await markDirty(c.env.DB, event.page_path);
+  // The tile may have been showing the photo just removed.
+  if (event.cover_src === photoSrc(photo, c.env.R2_PUBLIC_BASE)) {
+    await c.env.DB.prepare("UPDATE gallery_events SET cover_src = '' WHERE id = ?").bind(eventId).run();
+    await adoptCover(c.env, { ...event, cover_src: '' });
+  }
   await writeAudit(c.env.DB, c.var.user, 'gallery.photo.remove', event.slug, {
     pagePath: event.page_path,
   });
