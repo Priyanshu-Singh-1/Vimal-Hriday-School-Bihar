@@ -42,6 +42,10 @@
   var MAX_EDGE = 1920;
   var THUMB_EDGE = 400;
   var QUALITY = 0.82;
+  // Long enough for a pointer to cross the 14px gap between a photo and its
+  // toolbar. Not an animation — the toolbar looks the same, this only defers
+  // when it is taken away.
+  var TOOLBAR_HIDE_MS = 260;
   // README §05 gives no duration for the Saved flag; brief and non-animated
   // is the only stated constraint, so this is a plain timeout, not a CSS
   // transition.
@@ -759,8 +763,31 @@
     // without this flag the toolbar would go display:none mid-flow and the
     // modal's own close() could never focus back onto a hidden button.
     var overImg = false, overToolbar = false, toolbarFocused = false, modalOpen = false;
+    var hideTimer = null;
+    function toolbarWanted() {
+      return overImg || overToolbar || toolbarFocused || modalOpen;
+    }
+    /**
+     * Show at once; hide after a short grace period.
+     *
+     * The toolbar sits 14px clear of the photo (see positionGroup), so moving
+     * the pointer from the photo to a button necessarily crosses a strip that
+     * is neither of them. Hiding on that first mouseleave took the toolbar away
+     * before the pointer could arrive, which made "Change this photo"
+     * unreachable with a mouse. The delay is only long enough to cross the gap,
+     * and re-entering either element cancels it.
+     */
     function updateToolbarVisibility() {
-      toolbar.style.display = (overImg || overToolbar || toolbarFocused || modalOpen) ? 'flex' : 'none';
+      if (toolbarWanted()) {
+        if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+        toolbar.style.display = 'flex';
+        return;
+      }
+      if (hideTimer) return;
+      hideTimer = setTimeout(function () {
+        hideTimer = null;
+        if (!toolbarWanted()) toolbar.style.display = 'none';
+      }, TOOLBAR_HIDE_MS);
     }
     img.addEventListener('mouseenter', function () { overImg = true; updateToolbarVisibility(); });
     img.addEventListener('mouseleave', function () { overImg = false; updateToolbarVisibility(); });
