@@ -17,7 +17,7 @@
   <link href="//fonts.googleapis.com/css?family=PT+Serif:400,700" rel="stylesheet">
   <link href="//fonts.googleapis.com/css?family=Raleway:200,300,400,500,600,700" rel="stylesheet">
   <link href="../css/bootstrap.css" rel="stylesheet">
-  <link href="admin.css?v=2" rel="stylesheet">
+  <link href="admin.css?v=3" rel="stylesheet">
 </head>
 <body class="vhs-admin">
 
@@ -43,7 +43,10 @@
       <div class="vhs-published-text">You do not need to do anything else. If you open the page and still see the old photo, wait a minute or two and refresh the page.</div>
       <div class="vhs-published-actions">
         <a class="vhs-btn vhs-btn-primary vhs-btn-lg" href="../index.html">Open the school website</a>
-        <a class="vhs-btn vhs-btn-secondary vhs-btn-lg" href="pages.html">Change more photos</a>
+        <!-- Goes to the hub, not the page list: since the gallery exists there is
+             more than one kind of change to make, and landing on the photo-slot
+             pages hid the gallery entirely. -->
+        <a class="vhs-btn vhs-btn-secondary vhs-btn-lg" href="index.html">Change more photos</a>
       </div>
     </div>
   </div>
@@ -101,7 +104,7 @@
     }
     window.VHS_API_BASE = vhsResolveApiBase();
   </script>
-<script src="admin.js?v=2"></script>
-<script src="published.js?v=2"></script>
+<script src="admin.js?v=3"></script>
+<script src="published.js?v=3"></script>
 </body>
 </html>
