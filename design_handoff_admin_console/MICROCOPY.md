@@ -62,6 +62,7 @@ grep -rhoE "textContent = '[^']{6,}'|label: '[^']{6,}'" admin/*.js \
 | Home tile 4 (owner) | "People who can sign in" — "See who may change the website, and remove anyone who should not." |
 | Home tile 5 (owner) | "What changed recently" — "See the photos that were changed, and who changed them." |
 | Signed-in line | "Signed in as Sister Anita" |
+| Show/hide password | "Show password" / "Hide password" — the button says what it will do next |
 | Forgotten password | "If you have forgotten your password, please ask the Principal's office." |
 | Back link | "← Back to what do you want to do" |
 | Page row count | "6 photos can be changed" · singular: "1 photo can be changed" · "4 photos can be changed · 1 changed, not on the website yet" |
@@ -78,7 +79,7 @@ grep -rhoE "textContent = '[^']{6,}'|label: '[^']{6,}'" admin/*.js \
 | Remove modal | "Remove this photo from the page?" — "This photo will not be on the page any more. You can put a photo here again later." — "No, keep it on the page" / "Yes, remove this photo" |
 | Publish modal | "Put changes on the website?" — "These pages will change for everyone who visits the website:" — "Do you want to continue?" — "Not now" / "Yes, put them on the website" |
 | Publish success body | "You do not need to do anything else. If you open the page and still see the old photo, wait a minute or two and refresh the page." |
-| Publish success actions | "Open the school website" / "Change more photos" |
+| Publish success actions | "Open the school website" / "Change more photos" — the second returns to "What do you want to do?", not the page list |
 | Password fields | "My password now" / "My new password" / "Type my new password again" |
 | Password actions | "Save my new password" / "Go back" |
 | Password success | "Your new password is saved. Use it the next time you sign in." |
