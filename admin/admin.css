@@ -279,6 +279,30 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
 .vhs-signin-fields { display: flex; flex-direction: column; gap: 20px; }
 .vhs-signin-fields.is-disabled { opacity: .5; }
 
+/* Label on the left, the show/hide control on the right, so the control never
+   sits over the text being typed. 44px tall for a fingertip. */
+.vhs-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vhs-reveal {
+  background: none;
+  border: 0;
+  padding: 0;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font: 600 16px Raleway, Arial, sans-serif;
+  color: var(--vhs-purple);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.vhs-reveal:hover { color: var(--vhs-purple-hover); }
+
 .vhs-signin-forgot { margin-top: 20px; font: 400 16px/24px Raleway, Arial, sans-serif; color: var(--vhs-muted); }
 
 /* ---- Screen 02 — Home ---- */

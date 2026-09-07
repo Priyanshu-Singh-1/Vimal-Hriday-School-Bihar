@@ -490,7 +490,27 @@
     var usernameInput = $('signinUsername');
     var passwordInput = $('signinPassword');
     var submitBtn = $('signinSubmit');
+    var revealBtn = $('signinReveal');
     var lockoutTimer = null;
+
+    /**
+     * Show or hide what has been typed in the password field.
+     *
+     * Typing a long password blind on a phone is the commonest reason a sign-in
+     * fails when the password is in fact correct. Flipping the input's type is
+     * all that is needed; the button says what it will do next and carries
+     * aria-pressed so a screen reader announces the state.
+     */
+    if (revealBtn) {
+      revealBtn.addEventListener('click', function () {
+        var revealed = passwordInput.type === 'text';
+        passwordInput.type = revealed ? 'password' : 'text';
+        revealBtn.textContent = revealed ? 'Show password' : 'Hide password';
+        revealBtn.setAttribute('aria-pressed', revealed ? 'false' : 'true');
+        // Put the caret back in the field rather than leaving focus on the button.
+        passwordInput.focus();
+      });
+    }
 
     function resetAlert() {
       show(alertEl, false);

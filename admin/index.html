@@ -17,7 +17,7 @@
   <link href="//fonts.googleapis.com/css?family=PT+Serif:400,700" rel="stylesheet">
   <link href="//fonts.googleapis.com/css?family=Raleway:200,300,400,500,600,700" rel="stylesheet">
   <link href="../css/bootstrap.css" rel="stylesheet">
-  <link href="admin.css?v=2" rel="stylesheet">
+  <link href="admin.css?v=3" rel="stylesheet">
 </head>
 <body class="vhs-admin">
 
@@ -40,7 +40,14 @@
                  autocomplete="username" required>
         </div>
         <div class="vhs-field">
-          <label class="vhs-label" for="signinPassword">Password</label>
+          <div class="vhs-field-header">
+            <label class="vhs-label" for="signinPassword">Password</label>
+            <!-- Toggles the field between hidden and readable. A long password
+                 typed blind on a phone is the commonest reason a sign-in fails
+                 when the password is in fact correct. -->
+            <button class="vhs-reveal" type="button" id="signinReveal"
+                    aria-controls="signinPassword" aria-pressed="false">Show password</button>
+          </div>
           <input class="vhs-input" type="password" id="signinPassword" name="password"
                  autocomplete="current-password" required>
         </div>
@@ -171,6 +178,6 @@
     }
     window.VHS_API_BASE = vhsResolveApiBase();
   </script>
-<script src="admin.js?v=2"></script>
+<script src="admin.js?v=3"></script>
 </body>
 </html>
