@@ -23,6 +23,10 @@
   --vhs-text: #222222;
   --vhs-muted: #777777;
   --vhs-radius: 4px;
+  /* Height the credit line occupies (margin + line + padding). The two screens
+     that centre their card in the viewport subtract it, so adding the credit
+     does not introduce a scrollbar where there was none. */
+  --vhs-credit-h: 68px;
 }
 
 /* ---- Base ---- */
@@ -176,6 +180,20 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
 
 /* ---- Status strip (present on every signed-in screen) ---- */
 
+/* Credit line, matching the public site's footer. Sits at the end of the
+   scrolling content; the page already reserves the fixed strip's height. */
+.vhs-credit {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 40px auto 0;
+  padding: 0 24px 8px;
+  font: 400 13px/20px Raleway, Arial, sans-serif;
+  color: var(--vhs-muted);
+  text-align: center;
+}
+.vhs-credit a { color: var(--vhs-muted); text-decoration: underline; }
+.vhs-credit a:hover { color: var(--vhs-purple); }
+
 .vhs-status-strip {
   position: fixed;
   left: 0;
@@ -240,7 +258,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
 /* ---- Screen 01 — Sign in ---- */
 
 .vhs-signin-page {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--vhs-credit-h));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -432,6 +450,13 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
   position: fixed;
   top: 50%;
   left: 50%;
+  /* Bootstrap's own `.modal` rule sets bottom:0 and right:0, and the dialog
+     carries that class too. Left alone, the card's height becomes
+     "viewport minus 50%" — 170px of dead space on a tall screen, and on an
+     ordinary 768px one the footer button hung *outside* the white card. Height
+     and width must come from the content. */
+  bottom: auto;
+  right: auto;
   transform: translate(-50%, -50%);
   width: 480px;
   box-sizing: border-box;
@@ -558,7 +583,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
 
 .vhs-password-body {
   box-sizing: border-box;
-  min-height: calc(100vh - 64px - 78px);
+  min-height: calc(100vh - 64px - 78px - var(--vhs-credit-h));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -753,6 +778,18 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
   .vhs-tile-icon { display: none; }
   .vhs-tile-title { font: 700 19px 'PT Serif', serif; margin-bottom: 4px; }
   .vhs-tile-desc { font: 400 15px/22px Raleway, Arial, sans-serif; }
+
+  /* The centred screens size themselves with a calc that hardcodes the header
+     and strip heights, but the strip stacks to ~116px below 768px, so the sum
+     is wrong and the page scrolls. Vertical centring is worth little on a phone
+     anyway — the keyboard covers half the screen — so let the content flow and
+     leave the strip's real height to reserveRoomForStrip in admin.js. */
+  .vhs-password-body { min-height: 0; }
+  .vhs-signin-page { min-height: 0; padding: 24px 0; }
+
+  /* Tighter on a phone: the change-password form already fills the screen, so
+     the credit's full desktop margin would push it further down. */
+  .vhs-credit { margin-top: 20px; padding: 0 16px 8px; font-size: 12px; }
 
   .vhs-status-strip {
     height: auto;
