@@ -12,7 +12,7 @@
        either way, for links assigned from javascript too. Must stay above
        the first href/src below. -->
   <base href="/admin/">
-  <title>What changed recently — Vimal Hriday English Medium School</title>
+  <title>Navigation menus — Vimal Hriday English Medium School</title>
   <link rel="icon" href="../resources/images/logo.png">
   <link href="//fonts.googleapis.com/css?family=PT+Serif:400,700" rel="stylesheet">
   <link href="//fonts.googleapis.com/css?family=Raleway:200,300,400,500,600,700" rel="stylesheet">
@@ -21,7 +21,7 @@
 </head>
 <body class="vhs-admin">
 
-<div class="vhs-activity-page" id="activityPage">
+<div class="vhs-nav-page" id="navPage">
 
   <div class="vhs-header">
     <div class="vhs-header-left">
@@ -29,34 +29,38 @@
       <div class="vhs-header-title">Vimal Hriday School — website manager</div>
     </div>
     <div class="vhs-header-right">
-      <div class="vhs-header-user">Signed in as <b id="activityUserName"></b></div>
+      <div class="vhs-header-user">Signed in as <b id="navUserName"></b></div>
       <button class="vhs-btn vhs-btn-on-purple" type="button" id="signOutBtn">Sign out</button>
     </div>
   </div>
 
-  <div class="vhs-content vhs-activity-body">
-    <h1 class="vhs-h-screen vhs-activity-heading">What changed recently</h1>
-    <div class="vhs-muted-text vhs-activity-sub">The last 50 changes. Newest first.</div>
+  <div class="vhs-content vhs-nav-body">
+    <a class="vhs-back-link" href="index.html">Back to the start</a>
 
-    <div class="vhs-hidden" id="activityContent">
-      <div class="vhs-panel" id="activityRows"></div>
-      <div class="vhs-activity-more vhs-hidden" id="activityMoreWrap">
-        <button class="vhs-btn vhs-btn-secondary" type="button" id="activityMoreBtn">Load more</button>
-      </div>
+    <h1 class="vhs-h-screen vhs-nav-heading">Navigation menus</h1>
+    <p class="vhs-nav-intro">Add, change, remove or reorder the links under "The School" and "Circulars" in the website's top menu. Every other item in that menu is fixed and cannot be changed here.</p>
+
+    <div class="vhs-alert vhs-alert-error vhs-hidden" id="navAlert" role="alert"></div>
+
+    <div class="vhs-hidden" id="navContent">
+      <section class="vhs-nav-menu">
+        <div class="vhs-nav-menu-header">
+          <h2 class="vhs-h-card">The School</h2>
+          <button class="vhs-btn vhs-btn-primary" type="button" id="addTheSchoolBtn">Add a link</button>
+        </div>
+        <div class="vhs-panel" id="theSchoolRows"></div>
+        <div class="vhs-muted-text vhs-nav-empty vhs-hidden" id="theSchoolEmpty">No links yet.</div>
+      </section>
+
+      <section class="vhs-nav-menu">
+        <div class="vhs-nav-menu-header">
+          <h2 class="vhs-h-card">Circulars</h2>
+          <button class="vhs-btn vhs-btn-primary" type="button" id="addCircularsBtn">Add a link</button>
+        </div>
+        <div class="vhs-panel" id="circularsRows"></div>
+        <div class="vhs-muted-text vhs-nav-empty vhs-hidden" id="circularsEmpty">No links yet.</div>
+      </section>
     </div>
-
-    <div class="vhs-activity-empty vhs-hidden" id="activityEmpty">
-      <div class="vhs-h-card vhs-activity-empty-heading">No changes yet</div>
-      <div class="vhs-activity-empty-body">When somebody changes a photo, it will be listed here.</div>
-      <a class="vhs-btn vhs-btn-primary vhs-activity-empty-action" href="pages.html">Change photos on a page</a>
-    </div>
-
-    <!-- Non-photo tile icons, copied verbatim from the design canvas
-         (admin-console-design.dc.html, artboard "10 ACTIVITY"); cloned into
-         each row's tile by activity.js rather than built from a string, so
-         no markup is ever assembled from interpolated data. -->
-    <template id="activityIconPublish"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3c763d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4 10-10"></path></svg></template>
-    <template id="activityIconPeople"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#777" stroke-width="1.8" stroke-linecap="round"><circle cx="10" cy="8" r="3.2"></circle><path d="M4.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"></path></svg></template>
   </div>
 
     <!-- Same credit as the public site footer. Note the console is noindex,
@@ -115,6 +119,6 @@
     window.VHS_API_BASE = vhsResolveApiBase();
   </script>
 <script src="admin.js?v=5"></script>
-<script src="activity.js?v=5"></script>
+<script src="nav.js?v=5"></script>
 </body>
 </html>

@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 const NAMES =
-  'admin\\.css|admin\\.js|activity\\.js|event\\.js|gallery\\.js|pages\\.js|' +
+  'admin\\.css|admin\\.js|activity\\.js|event\\.js|gallery\\.js|nav\\.js|pages\\.js|' +
   'password\\.js|people\\.js|published\\.js|editor\\.v1\\.js';
 
 /**
