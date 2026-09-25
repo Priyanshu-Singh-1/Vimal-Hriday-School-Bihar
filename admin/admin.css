@@ -951,3 +951,44 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
 }
 
 .vhs-add-photos-panel { padding: 20px; }
+
+/* ---------------------------------------------------------------------------
+   Navigation menus ("The School" / "Circulars" dropdown links)
+
+   Reuses .vhs-page-row / .vhs-panel / .vhs-btn* / .vhs-event-row-buttons
+   wherever the shape already exists; the rules below only cover what this
+   screen adds -- the per-menu heading row, the empty state, and the
+   checkbox fields in the add/change modal.
+   --------------------------------------------------------------------------- */
+
+.vhs-nav-page { padding-bottom: 78px; }
+.vhs-nav-body { box-sizing: border-box; max-width: 940px; padding: 32px 24px 0; }
+.vhs-nav-heading { margin: 0 0 6px; }
+.vhs-nav-intro { color: var(--vhs-muted); margin: 0 0 28px; }
+
+.vhs-nav-menu { margin-bottom: 32px; }
+.vhs-nav-menu-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.vhs-nav-empty { padding: 4px 0 0; }
+
+.vhs-nav-move-btn { padding: 0 14px; }
+
+.vhs-checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 400 16px Raleway, Arial, sans-serif;
+  color: var(--vhs-text);
+  cursor: pointer;
+}
+.vhs-checkbox-field input { width: 18px; height: 18px; }
+
+@media (max-width: 767px) {
+  .vhs-nav-menu-header { flex-direction: column; align-items: stretch; }
+}

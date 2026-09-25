@@ -1,13 +1,14 @@
 import { readSentinel, replaceSentinel, assertSentinelsBalanced } from './sentinel';
 import { renderSlotTag, type SlotRow } from './slot';
 import { galleryRegionsFor } from './gallery';
+import { navRegionsFor } from './nav';
 
 /**
  * Patch every sentinel-bounded region on one page.
  *
  * Photo slots are patched in place, preserving the live tag's exact bytes
- * apart from `src`/`alt`. Gallery regions hold a variable-length list, so they
- * are regenerated from the database instead.
+ * apart from `src`/`alt`. Gallery regions and nav-menu regions hold a
+ * variable-length list, so they are regenerated from the database instead.
  *
  * Throws if the page's sentinels do not match the regions recorded for it, so
  * a malformed page is never committed.
@@ -27,10 +28,15 @@ export async function renderPage(
     .all<SlotRow>();
 
   const gallery = await galleryRegionsFor(db, pagePath, publicBase);
+  const nav = await navRegionsFor(db, html);
 
-  if (!results.length && !gallery.length) return html;
+  if (!results.length && !gallery.length && !nav.length) return html;
 
-  assertSentinelsBalanced(html, [...results.map((s) => s.id), ...gallery.map((g) => g.id)]);
+  assertSentinelsBalanced(html, [
+    ...results.map((s) => s.id),
+    ...gallery.map((g) => g.id),
+    ...nav.map((n) => n.id),
+  ]);
 
   let out = html;
   for (const slot of results) {
@@ -38,6 +44,9 @@ export async function renderPage(
     out = replaceSentinel(out, slot.id, renderSlotTag(currentTag, slot, publicBase));
   }
   for (const region of gallery) {
+    out = replaceSentinel(out, region.id, region.inner);
+  }
+  for (const region of nav) {
     out = replaceSentinel(out, region.id, region.inner);
   }
   return out;
