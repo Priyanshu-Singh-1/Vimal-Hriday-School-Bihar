@@ -18,6 +18,7 @@
 
   var alertEl = document.getElementById('navAlert');
   var contentEl = document.getElementById('navContent');
+  var busyEl = document.getElementById('navBusy');
 
   var stateEl = document.createElement('div');
   document.querySelector('.vhs-nav-body').insertBefore(stateEl, alertEl);
@@ -68,10 +69,35 @@
     return input;
   }
 
+  /* --------------------------------------------------------------- busy */
+
+  // A network round trip has real latency, and every nav action either
+  // closes its modal immediately (Add/Change/Remove) or has no modal at all
+  // (Move up/down) -- so with nothing else on screen, the gap before the
+  // list refreshes reads as "the button did not work," and an impatient
+  // second click can fire an overlapping request. Disabling every action
+  // button for the width of one request, plus a plain status line (no
+  // spinner -- this console never uses decorative animation), covers both
+  // problems the same way the sign-in form and the publish button already
+  // do elsewhere in this console.
+  var busyCount = 0;
+
+  function setBusy(isBusy) {
+    busyCount += isBusy ? 1 : -1;
+    if (busyCount < 0) busyCount = 0;
+    var disabled = busyCount > 0;
+    var buttons = document.querySelectorAll(
+      '#theSchoolRows button, #circularsRows button, #addTheSchoolBtn, #addCircularsBtn'
+    );
+    for (var i = 0; i < buttons.length; i++) buttons[i].disabled = disabled;
+    VHS.show(busyEl, disabled);
+  }
+
   /* --------------------------------------------------------------- send */
 
   function send(method, path, body) {
     clearError();
+    setBusy(true);
     var init = { method: method, headers: VHS.authHeaders() };
     if (body) {
       init.headers = VHS.authHeaders();
@@ -79,9 +105,10 @@
       init.body = JSON.stringify(body);
     }
     return fetch(API + path, init).then(function (res) {
-      if (res.status === 401) { VHS.showSessionExpired(); return null; }
+      if (res.status === 401) { setBusy(false); VHS.showSessionExpired(); return null; }
       return res.json().catch(function () { return {}; }).then(function (payload) {
         if (!res.ok) {
+          setBusy(false);
           showError(payload && payload.error ? payload.error : 'That did not work. Please try again.');
           return null;
         }
@@ -89,10 +116,12 @@
       });
     }).then(function (ok) {
       if (!ok) return null;
+      setBusy(false);
       loadMenus();
       if (VHS.refreshStatusStrip) VHS.refreshStatusStrip();
       return ok;
     }).catch(function () {
+      setBusy(false);
       showError('The website could not be reached. Please try again.');
       return null;
     });
@@ -197,7 +226,7 @@
     up.className = 'vhs-btn vhs-btn-secondary vhs-nav-move-btn';
     up.textContent = 'Move up';
     up.disabled = index === 0;
-    up.addEventListener('click', function () { moveLink(menuKey, items, index, -1); });
+    up.addEventListener('click', function () { up.textContent = 'Moving…'; moveLink(menuKey, items, index, -1); });
     buttons.appendChild(up);
 
     var down = document.createElement('button');
@@ -205,7 +234,7 @@
     down.className = 'vhs-btn vhs-btn-secondary vhs-nav-move-btn';
     down.textContent = 'Move down';
     down.disabled = index === items.length - 1;
-    down.addEventListener('click', function () { moveLink(menuKey, items, index, 1); });
+    down.addEventListener('click', function () { down.textContent = 'Moving…'; moveLink(menuKey, items, index, 1); });
     buttons.appendChild(down);
 
     var change = document.createElement('button');
