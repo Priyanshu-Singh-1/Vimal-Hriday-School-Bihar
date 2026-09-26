@@ -185,6 +185,7 @@
     var meta = document.createElement('div');
     meta.className = 'vhs-page-row-meta vhs-muted-text';
     meta.textContent = item.href;
+    meta.title = item.href;
     info.appendChild(meta);
     row.appendChild(info);
 

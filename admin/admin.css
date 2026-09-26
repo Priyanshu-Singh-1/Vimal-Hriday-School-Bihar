@@ -374,8 +374,8 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
   gap: 20px;
   padding: 18px 20px;
 }
-.vhs-page-row-info { flex: 1; }
-.vhs-page-row-meta { margin-top: 4px; }
+.vhs-page-row-info { flex: 1; min-width: 0; }
+.vhs-page-row-meta { margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .vhs-page-thumbs { flex: none; display: flex; gap: 6px; }
 .vhs-page-thumb {
@@ -464,6 +464,8 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
   border: 1px solid var(--vhs-border);
   border-radius: var(--vhs-radius);
   z-index: 10001;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .vhs-modal-header { padding: 18px 20px; border-bottom: 1px solid var(--vhs-border); }
@@ -483,7 +485,12 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
 .vhs-modal-text + .vhs-modal-page-list { margin-top: 16px; }
 .vhs-modal-page-list + .vhs-modal-text { margin-top: 16px; }
 
-.vhs-modal-page-list { border: 1px solid var(--vhs-border); border-radius: var(--vhs-radius); }
+.vhs-modal-page-list {
+  border: 1px solid var(--vhs-border);
+  border-radius: var(--vhs-radius);
+  max-height: 320px;
+  overflow-y: auto;
+}
 .vhs-modal-page-row {
   display: flex;
   align-items: center;
@@ -847,6 +854,7 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
   display: flex;
   gap: 8px;
   flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .vhs-badge-hidden {
