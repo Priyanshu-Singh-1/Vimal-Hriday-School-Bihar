@@ -250,41 +250,62 @@
     return joined;
   }
 
+  // A change to something shared by every page -- like the top navbar menus --
+  // marks every page on the site dirty at once. Listing all of them by name
+  // gives a non-technical operator no useful information (they did not open
+  // or edit any of those pages individually) and, at real site size, is an
+  // unreadable, unscrollable wall of rows. A deliberate single-page edit
+  // (one photo slot, one gallery event) never marks more than a couple of
+  // pages dirty, so this count alone safely tells the two cases apart with
+  // no need to track *why* a page went dirty.
+  var SITE_WIDE_PUBLISH_THRESHOLD = 6;
+
   function buildPublishModalBody(body, joinedPages) {
     var lead = document.createElement('div');
     lead.className = 'vhs-modal-text';
-    lead.textContent = 'These pages will change for everyone who visits the website:';
-    body.appendChild(lead);
 
-    var list = document.createElement('div');
-    list.className = 'vhs-modal-page-list';
-    joinedPages.forEach(function (p) {
-      var row = document.createElement('div');
-      row.className = 'vhs-modal-page-row';
-      if (p.thumbs && p.thumbs[0]) {
-        var img = document.createElement('img');
-        img.className = 'vhs-modal-page-thumb';
-        img.src = p.thumbs[0];
-        img.alt = '';
-        row.appendChild(img);
-      }
-      var name = document.createElement('div');
-      name.className = 'vhs-modal-page-name';
-      name.textContent = p.label;
-      row.appendChild(name);
-      // A pending page can be pending only for a revert, which clears
-      // r2_key and so leaves unpublishedCount at 0 — that is not "0
-      // photos", it's just no count to show. MICROCOPY.md has no string
-      // for that case, so the count text is omitted rather than invented.
-      if (p.unpublishedCount > 0) {
-        var count = document.createElement('div');
-        count.className = 'vhs-modal-page-count';
-        count.textContent = photoCountLabel(p.unpublishedCount);
-        row.appendChild(count);
-      }
-      list.appendChild(row);
-    });
-    body.appendChild(list);
+    if (joinedPages.length > SITE_WIDE_PUBLISH_THRESHOLD) {
+      lead.textContent = 'This updates ' + joinedPages.length + ' pages across the website.';
+      body.appendChild(lead);
+
+      var why = document.createElement('div');
+      why.className = 'vhs-modal-text';
+      why.textContent = 'That happens when something shown on every page changes, like the top menu — you do not need to check each page yourself.';
+      body.appendChild(why);
+    } else {
+      lead.textContent = 'These pages will change for everyone who visits the website:';
+      body.appendChild(lead);
+
+      var list = document.createElement('div');
+      list.className = 'vhs-modal-page-list';
+      joinedPages.forEach(function (p) {
+        var row = document.createElement('div');
+        row.className = 'vhs-modal-page-row';
+        if (p.thumbs && p.thumbs[0]) {
+          var img = document.createElement('img');
+          img.className = 'vhs-modal-page-thumb';
+          img.src = p.thumbs[0];
+          img.alt = '';
+          row.appendChild(img);
+        }
+        var name = document.createElement('div');
+        name.className = 'vhs-modal-page-name';
+        name.textContent = p.label;
+        row.appendChild(name);
+        // A pending page can be pending only for a revert, which clears
+        // r2_key and so leaves unpublishedCount at 0 — that is not "0
+        // photos", it's just no count to show. MICROCOPY.md has no string
+        // for that case, so the count text is omitted rather than invented.
+        if (p.unpublishedCount > 0) {
+          var count = document.createElement('div');
+          count.className = 'vhs-modal-page-count';
+          count.textContent = photoCountLabel(p.unpublishedCount);
+          row.appendChild(count);
+        }
+        list.appendChild(row);
+      });
+      body.appendChild(list);
+    }
 
     var closing = document.createElement('div');
     closing.className = 'vhs-modal-text';
