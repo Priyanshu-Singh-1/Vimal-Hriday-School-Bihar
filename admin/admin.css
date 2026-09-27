@@ -1000,3 +1000,30 @@ a:focus, button:focus, input:focus, select:focus, textarea:focus, [tabindex]:foc
 @media (max-width: 767px) {
   .vhs-nav-menu-header { flex-direction: column; align-items: stretch; }
 }
+
+/* Nav screen's busy indicator (admin/nav.html #navBusy) -- a small spinner
+   plus text, so a network round trip visibly reads as "working" rather
+   than "stalled." Scoped to this one indicator; it does not change the
+   loading/offline states elsewhere in the console. */
+.vhs-nav-busy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 400 16px Raleway, Arial, sans-serif;
+  color: var(--vhs-muted);
+  margin: 0 0 16px;
+}
+
+.vhs-spinner {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border: 3px solid var(--vhs-border);
+  border-top-color: var(--vhs-purple);
+  border-radius: 50%;
+  animation: vhs-nav-spin 0.8s linear infinite;
+}
+
+@keyframes vhs-nav-spin {
+  to { transform: rotate(360deg); }
+}
