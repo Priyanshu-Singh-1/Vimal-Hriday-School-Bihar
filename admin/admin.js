@@ -407,21 +407,38 @@
       setTimeout(function () { if (pendingCount > 0) textEl.textContent = restore; }, NOTHING_TO_PUBLISH_MS);
     }
 
+    // A very large batch (e.g. every page sharing the navbar) is capped
+    // server-side per request -- Cloudflare limits how many outgoing
+    // requests one invocation can make. The server reports how many pages
+    // are still left (`remaining`) rather than losing them, so keep asking
+    // until nothing is left instead of making the operator press the
+    // button again for what is really one publish, not several.
+    var PUBLISH_MAX_ROUNDS = 15;
+
     function startPublishing() {
       btn.classList.add('is-disabled');
+      publishRound(1);
+    }
+
+    function publishRound(round) {
       fetch(API + '/v1/publish', { method: 'POST', headers: authHeaders() }).then(function (res) {
         if (res.status === 401) { showSessionExpired(); return; }
         return res.json().catch(function () { return {}; }).then(function (body) {
           var hadFailures = body && Array.isArray(body.failed) && body.failed.length > 0;
-          if (res.ok && !hadFailures) {
-            location.href = 'published.html';
+          if (!res.ok || hadFailures) {
+            showPublishError(
+              hadFailures
+                ? (body.failed.length === 1 ? '1 page could not be published. Please try again.' : body.failed.length + ' pages could not be published. Please try again.')
+                : 'Something went wrong publishing. Please try again.'
+            );
             return;
           }
-          showPublishError(
-            hadFailures
-              ? (body.failed.length === 1 ? '1 page could not be published. Please try again.' : body.failed.length + ' pages could not be published. Please try again.')
-              : 'Something went wrong publishing. Please try again.'
-          );
+          var remaining = body && typeof body.remaining === 'number' ? body.remaining : 0;
+          if (remaining > 0 && round < PUBLISH_MAX_ROUNDS) {
+            publishRound(round + 1);
+            return;
+          }
+          location.href = 'published.html';
         });
       }).catch(function () {
         // Offline/failed publish: the pages are still pending server-side,
