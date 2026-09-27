@@ -111,6 +111,31 @@
     document.body.appendChild(backdrop);
   }
 
+  // A publish can now take several rounds in a row (a large batch is capped
+  // per request -- see initStatusStrip's PUBLISH_MAX_ROUNDS below), and every
+  // round is a real network round trip with nothing else on screen once the
+  // confirm modal has already closed. Left silent, that gap reads as "the
+  // button did not work." A dedicated overlay stays visible regardless of
+  // where the operator scrolled on the underlying page.
+  function showPublishingOverlay() {
+    if ($('vhsPublishingOverlay')) return;
+    var backdrop = document.createElement('div');
+    backdrop.id = 'vhsPublishingOverlay';
+    backdrop.className = 'vhs-state-overlay-backdrop';
+    var panel = document.createElement('div');
+    panel.className = 'vhs-state-overlay-panel vhs-publishing-panel';
+    panel.innerHTML =
+      '<div class="vhs-spinner vhs-spinner-lg" aria-hidden="true"></div>' +
+      '<div class="vhs-publishing-text">Putting your changes on the website…</div>';
+    backdrop.appendChild(panel);
+    document.body.appendChild(backdrop);
+  }
+
+  function hidePublishingOverlay() {
+    var el = $('vhsPublishingOverlay');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+  }
+
   // Wires the shared purple header's "Signed in as" name and "Sign out"
   // button, per README "02 — Home" / "03 — Pick a page". `opts.onUser`, if
   // given, receives the full user record (e.g. to show owner-only tiles).
@@ -417,15 +442,17 @@
 
     function startPublishing() {
       btn.classList.add('is-disabled');
+      showPublishingOverlay();
       publishRound(1);
     }
 
     function publishRound(round) {
       fetch(API + '/v1/publish', { method: 'POST', headers: authHeaders() }).then(function (res) {
-        if (res.status === 401) { showSessionExpired(); return; }
+        if (res.status === 401) { hidePublishingOverlay(); showSessionExpired(); return; }
         return res.json().catch(function () { return {}; }).then(function (body) {
           var hadFailures = body && Array.isArray(body.failed) && body.failed.length > 0;
           if (!res.ok || hadFailures) {
+            hidePublishingOverlay();
             showPublishError(
               hadFailures
                 ? (body.failed.length === 1 ? '1 page could not be published. Please try again.' : body.failed.length + ' pages could not be published. Please try again.')
@@ -438,12 +465,14 @@
             publishRound(round + 1);
             return;
           }
+          hidePublishingOverlay();
           location.href = 'published.html';
         });
       }).catch(function () {
         // Offline/failed publish: the pages are still pending server-side,
         // so restore the pending look rather than stranding the strip on
         // the look-disabled waiting state.
+        hidePublishingOverlay();
         render(pendingCount);
       });
     }
