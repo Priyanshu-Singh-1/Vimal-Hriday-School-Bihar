@@ -94,6 +94,7 @@ export async function publishPending(
 }
 
 async function recordFailure(env: Env, path: string, err: unknown): Promise<void> {
+  console.error(`publish: failed to render/commit ${path}:`, err);
   await env.DB.prepare(
     `UPDATE pending_publish SET attempts = attempts + 1, last_error = ? WHERE page_path = ?`,
   )
@@ -169,6 +170,7 @@ publish.post('/', async (c) => {
   try {
     return c.json(await publishPending(c.env, c.var.user));
   } catch (err) {
+    console.error('publish: request failed:', err);
     return c.json(
       { error: 'publish failed, pages remain pending and will be retried', detail: String(err) },
       502,

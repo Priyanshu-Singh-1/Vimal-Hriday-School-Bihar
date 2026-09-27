@@ -394,11 +394,35 @@
       setTimeout(function () { if (pendingCount <= 0) textEl.textContent = restore; }, NOTHING_TO_PUBLISH_MS);
     }
 
+    // Used when the publish request itself succeeded (or came back with a
+    // handled error body) but did not actually finish the job -- a page that
+    // failed to render, or the final commit being rejected because something
+    // else changed the branch in the same window. Silently treating any
+    // non-401 response as success told the operator changes were live on the
+    // website when nothing had actually changed there.
+    function showPublishError(message) {
+      render(pendingCount);
+      var restore = textEl.textContent;
+      textEl.textContent = message;
+      setTimeout(function () { if (pendingCount > 0) textEl.textContent = restore; }, NOTHING_TO_PUBLISH_MS);
+    }
+
     function startPublishing() {
       btn.classList.add('is-disabled');
       fetch(API + '/v1/publish', { method: 'POST', headers: authHeaders() }).then(function (res) {
         if (res.status === 401) { showSessionExpired(); return; }
-        return res.json().then(function () { location.href = 'published.html'; });
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          var hadFailures = body && Array.isArray(body.failed) && body.failed.length > 0;
+          if (res.ok && !hadFailures) {
+            location.href = 'published.html';
+            return;
+          }
+          showPublishError(
+            hadFailures
+              ? (body.failed.length === 1 ? '1 page could not be published. Please try again.' : body.failed.length + ' pages could not be published. Please try again.')
+              : 'Something went wrong publishing. Please try again.'
+          );
+        });
       }).catch(function () {
         // Offline/failed publish: the pages are still pending server-side,
         // so restore the pending look rather than stranding the strip on

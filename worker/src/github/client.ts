@@ -57,46 +57,64 @@ export function createGitHubClient(env: Env, fetchImpl: typeof fetch = fetch) {
     async commitFiles(files: FileChange[], message: string): Promise<string | null> {
       if (!files.length) return null;
 
-      const ref = await api<{ object: { sha: string } }>(
-        `${base}/git/ref/heads/${env.GITHUB_BRANCH}`,
-      );
-      const headSha = ref.object.sha;
-      const headCommit = await api<{ tree: { sha: string } }>(`${base}/git/commits/${headSha}`);
+      const attempt = async (): Promise<string> => {
+        const ref = await api<{ object: { sha: string } }>(
+          `${base}/git/ref/heads/${env.GITHUB_BRANCH}`,
+        );
+        const headSha = ref.object.sha;
+        const headCommit = await api<{ tree: { sha: string } }>(`${base}/git/commits/${headSha}`);
 
-      // A deletion carries no blob; its tree entry uses `sha: null` instead.
-      const blobs = await Promise.all(
-        files.map((f) =>
-          f.content === null
-            ? Promise.resolve(null)
-            : api<{ sha: string }>(`${base}/git/blobs`, 'POST', {
-                content: toBase64(f.content),
-                encoding: 'base64',
-              }),
-        ),
-      );
+        // A deletion carries no blob; its tree entry uses `sha: null` instead.
+        const blobs = await Promise.all(
+          files.map((f) =>
+            f.content === null
+              ? Promise.resolve(null)
+              : api<{ sha: string }>(`${base}/git/blobs`, 'POST', {
+                  content: toBase64(f.content),
+                  encoding: 'base64',
+                }),
+          ),
+        );
 
-      const tree = await api<{ sha: string }>(`${base}/git/trees`, 'POST', {
-        base_tree: headCommit.tree.sha,
-        tree: files.map((f, i) => ({
-          path: f.path,
-          mode: '100644',
-          type: 'blob',
-          sha: blobs[i] === null ? null : blobs[i]!.sha,
-        })),
-      });
+        const tree = await api<{ sha: string }>(`${base}/git/trees`, 'POST', {
+          base_tree: headCommit.tree.sha,
+          tree: files.map((f, i) => ({
+            path: f.path,
+            mode: '100644',
+            type: 'blob',
+            sha: blobs[i] === null ? null : blobs[i]!.sha,
+          })),
+        });
 
-      const commit = await api<{ sha: string }>(`${base}/git/commits`, 'POST', {
-        message,
-        tree: tree.sha,
-        parents: [headSha],
-      });
+        const commit = await api<{ sha: string }>(`${base}/git/commits`, 'POST', {
+          message,
+          tree: tree.sha,
+          parents: [headSha],
+        });
 
-      await api(`${base}/git/refs/heads/${env.GITHUB_BRANCH}`, 'PATCH', {
-        sha: commit.sha,
-        force: false,
-      });
+        await api(`${base}/git/refs/heads/${env.GITHUB_BRANCH}`, 'PATCH', {
+          sha: commit.sha,
+          force: false,
+        });
 
-      return commit.sha;
+        return commit.sha;
+      };
+
+      // The ref can move between reading its sha and updating it -- most
+      // commonly a developer's own `git push` to the same branch landing in
+      // the same few seconds as a console publish (the reverse of this race
+      // is already a documented, known issue in this repo's own deploy
+      // runbook). One retry against the new head handles that ordinary
+      // case; a second collision in the same short window is left to
+      // surface as a real failure rather than retried away silently.
+      try {
+        return await attempt();
+      } catch (err) {
+        if (err instanceof GitHubError && (err.status === 409 || err.status === 422)) {
+          return await attempt();
+        }
+        throw err;
+      }
     },
   };
 }
