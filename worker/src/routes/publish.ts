@@ -8,6 +8,19 @@ import { createGitHubClient, type FileChange } from '../github/client';
 
 const UNBOUND_TTL = '-1 day';
 
+// Cloudflare caps how many outgoing fetch() calls ("subrequests") one single
+// invocation can make (commonly 50 on this project's plan). Reading every
+// dirty page from GitHub costs one subrequest each, and the final commit's
+// blob-creation step costs roughly one more per changed page -- so a batch
+// above about 20-25 pages can exceed that cap and fail entirely, leaving
+// every page in the batch permanently stuck (this is exactly what happened
+// in production: 45 dirty pages, ~90 subrequests needed, hard-failing every
+// 5-minute cron retry with "Too many subrequests by single Worker
+// invocation"). Capping the batch keeps every invocation safely under the
+// limit; anything left over stays queued for the very next invocation --
+// another cron tick a few minutes later, or the caller looping itself.
+const MAX_PAGES_PER_PUBLISH_RUN = 15;
+
 export const publish = new Hono<{ Bindings: Env; Variables: Vars }>();
 
 publish.use('*', requireAuth);
@@ -21,14 +34,16 @@ export async function publishPending(
   env: Env,
   actor: SessionUser | null,
   fetchImpl: typeof fetch = fetch,
-): Promise<{ commit: string | null; pages: string[]; failed: string[] }> {
+): Promise<{ commit: string | null; pages: string[]; failed: string[]; remaining: number }> {
   const { results } = await env.DB.prepare(
     'SELECT page_path FROM pending_publish ORDER BY page_path',
   ).all<{ page_path: string }>();
-  if (!results.length) return { commit: null, pages: [], failed: [] };
+  if (!results.length) return { commit: null, pages: [], failed: [], remaining: 0 };
 
   const gh = createGitHubClient(env, fetchImpl);
-  const dirty = results.map((r) => r.page_path);
+  const allDirty = results.map((r) => r.page_path);
+  const dirty = allDirty.slice(0, MAX_PAGES_PER_PUBLISH_RUN);
+  const remaining = allDirty.length - dirty.length;
   const changes: FileChange[] = [];
   const clean: string[] = [];
   const failed: string[] = [];
@@ -67,7 +82,7 @@ export async function publishPending(
     await env.DB.prepare('DELETE FROM pending_page_ops WHERE page_path = ?').bind(path).run();
   }
 
-  if (!changes.length) return { commit: null, pages: [], failed };
+  if (!changes.length) return { commit: null, pages: [], failed, remaining };
 
   const message =
     `chore(content): publish ${changes.length} page${changes.length === 1 ? '' : 's'}\n\n` +
@@ -90,7 +105,7 @@ export async function publishPending(
     pages: changes.map((c) => c.path),
   });
 
-  return { commit, pages: changes.map((c) => c.path), failed };
+  return { commit, pages: changes.map((c) => c.path), failed, remaining };
 }
 
 async function recordFailure(env: Env, path: string, err: unknown): Promise<void> {

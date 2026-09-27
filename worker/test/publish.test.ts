@@ -63,7 +63,7 @@ beforeEach(async () => {
 describe('publishPending', () => {
   it('does nothing when no page is dirty', async () => {
     const { impl, calls } = ghMock();
-    expect(await publishPending(env as any, null, impl)).toEqual({ commit: null, pages: [], failed: [] });
+    expect(await publishPending(env as any, null, impl)).toEqual({ commit: null, pages: [], failed: [], remaining: 0 });
     expect(calls).toHaveLength(0);
   });
 
@@ -132,6 +132,32 @@ describe('publishPending', () => {
     await publishPending(env as any, null, ghMock().impl);
     const row = await env.DB.prepare(`SELECT action FROM audit_log ORDER BY id DESC LIMIT 1`).first<any>();
     expect(row.action).toBe('publish');
+  });
+
+  // Cloudflare caps subrequests per invocation; a batch this large (e.g. a
+  // navbar-menu change marking every page on the site dirty at once) would
+  // exceed it in one call, so one invocation must only ever take a bounded
+  // slice and report the rest as still queued.
+  it('caps how many pages one invocation processes and reports the rest as remaining', async () => {
+    const paths: string[] = [];
+    for (let i = 0; i < 20; i++) paths.push(`generic${i}.html`);
+    for (const p of paths) {
+      await env.DB.prepare('INSERT INTO pending_publish (page_path) VALUES (?)').bind(p).run();
+    }
+
+    const impl = vi.fn(async (input: any) => {
+      const url = String(input);
+      if (url.includes('/contents/')) return new Response('<html>no sentinels here</html>', { status: 200 });
+      return new Response('unmatched ' + url, { status: 599 });
+    }) as unknown as typeof fetch;
+
+    const result = await publishPending(env as any, null, impl);
+    expect(result.remaining).toBe(5);
+    expect(result.commit).toBeNull();
+    expect(result.failed).toEqual([]);
+
+    const row = await env.DB.prepare('SELECT COUNT(*) AS n FROM pending_publish').first<any>();
+    expect(row.n).toBe(5);
   });
 });
 
